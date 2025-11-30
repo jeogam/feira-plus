@@ -1,0 +1,111 @@
+.metric-card {
+  background: white;
+  border-left: 4px solid #1F2A37;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.metric-title {
+  font-size: 14px;
+  color: #7f8c8d;
+  margin: 0;
+  font-weight: 500;
+}
+
+.metric-icon {
+  font-size: 24px;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 10px 0;
+}
+
+.metric-subtext {
+  font-size: 12px;
+  color: #95a5a6;
+  margin: 0;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .metric-card {
+    padding: 18px;
+  }
+
+  .metric-value {
+    font-size: 28px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .metric-card {
+    padding: 16px;
+  }
+
+  .metric-header {
+    margin-bottom: 12px;
+  }
+
+  .metric-title {
+    font-size: 13px;
+  }
+
+  .metric-icon {
+    font-size: 20px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+    margin: 8px 0;
+  }
+
+  .metric-subtext {
+    font-size: 11px;
+  }
+}
+
+/* Mobile pequeno */
+@media (max-width: 480px) {
+  .metric-card {
+    padding: 14px;
+  }
+
+  .metric-header {
+    margin-bottom: 10px;
+  }
+
+  .metric-title {
+    font-size: 12px;
+  }
+
+  .metric-icon {
+    font-size: 18px;
+  }
+
+  .metric-value {
+    font-size: 20px;
+    margin: 6px 0;
+  }
+
+  .metric-subtext {
+    font-size: 10px;
+  }
+}
