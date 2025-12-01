@@ -1,33 +1,62 @@
-import { useState } from 'react'
-import Login from "./pages/Login"
-import Sidebar from './components/Sidebar'
-import HomeLayout from './components/HomeLayout'
-import Dashboard from './pages/Home/Dashboard'
-import './styles/App.css'
+import { useState, useContext } from "react";
+import Login from "./pages/Login";
+import Sidebar from "./components/Sidebar";
+import HomeLayout from "./components/HomeLayout";
+import Dashboard from "./pages/Home/Dashboard";
+
+import { AuthContext } from "./context/AuthContext";
+import "./styles/App.css";
 
 function App() {
-  // Estados de autenticação e navegação
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
-  const [currentPage, setCurrentPage] = useState('dashboard')
+  const { user, logout, loading } = useContext(AuthContext);
 
-  // Guard clause: redireciona para login se não autenticado
-  if (!isLoggedIn) {
-    return <Login />
+  // Controle simples da página atual
+  const [currentPage, setCurrentPage] = useState("dashboard");
+
+  // Tela de carregamento (útil quando o AuthContext está checando token)
+  if (loading) {
+    return <div>Carregando...</div>;
   }
 
-  // Renderiza layout principal com navegação e conteúdo dinâmico
+  // Se NÃO estiver logado → mostra tela de login
+  if (!user) {
+    return <Login onLogin={() => {}} />;
+  }
+
+  // Navegação da sidebar
+  const handleNavigate = (pageId) => {
+    if (pageId === "sair") {
+      logout(); // agora o logout funciona de verdade
+      return;
+    }
+
+    setCurrentPage(pageId);
+  };
+
   return (
     <div className="app-container">
-      <Sidebar activePage={currentPage} onNavigate={setCurrentPage} />
+      {/* Sidebar recebe nome e perfil do usuário */}
+      <Sidebar
+        activePage={currentPage}
+        onNavigate={handleNavigate}
+        userName={user.nome}
+        userRole={user.perfilUsuario || "Usuário"}  
+      />
+
       <HomeLayout>
-        {/* Router condicional - renderiza página conforme estado currentPage */}
-        {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'feiras' && <div style={{ padding: '20px' }}>Gestão de Feiras</div>}
-        {currentPage === 'expositores' && <div style={{ padding: '20px' }}>Expositores</div>}
-        {currentPage === 'configuracoes' && <div style={{ padding: '20px' }}>Configurações</div>}
+        {currentPage === "dashboard" && <Dashboard />}
+        {currentPage === "feiras" && (
+          <div style={{ padding: "20px" }}>Gestão de Feiras</div>
+        )}
+        {currentPage === "expositores" && (
+          <div style={{ padding: "20px" }}>Expositores</div>
+        )}
+        {currentPage === "configuracoes" && (
+          <div style={{ padding: "20px" }}>Configurações</div>
+        )}
       </HomeLayout>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

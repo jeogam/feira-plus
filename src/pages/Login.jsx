@@ -1,69 +1,118 @@
-import React, { useState } from 'react';
-// Importa o CSS com as cores e estilos corrigidos
-import '../styles/Login.css'; 
-import '../styles/App.css'
+// Importa o React e hooks essenciais
+import React, { useState, useContext } from 'react';
 
-// Importa os Componentes Modais
+// Importa os arquivos de estilo
+import '../styles/Login.css'; 
+import '../styles/App.css';
+
+// Importa o contexto de autenticação e o serviço de requisições
+import { AuthContext } from "../context/AuthContext.jsx";
+import { apiFetch } from "../services/api";
+
+// Importa os componentes de modais usados na tela
 import ForgotPasswordModal from '../components/Login/ForgotPasswordModal';
 import SuccessModal from '../components/common/SuccessModal';
 import ErrorModal from '../components/common/ErrorModal';
 
-function Login() {
-  // --- Estados do Formulário ---
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); 
+// O componente Login recebe a prop 'onLogin', enviada pelo App.js
+function Login({ onLogin }) {
 
-  // --- Estados de Controle dos Modais ---
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  
-  // Estado para controlar mensagens de sucesso e erro
-  const [successState, setSuccessState] = useState({ show: false, message: '' });
-  const [errorState, setErrorState] = useState({ show: false, message: '' });
+  // --- ESTADOS DO FORMULÁRIO ---
+  const [email, setEmail] = useState('');              // Campo do e-mail
+  const [password, setPassword] = useState('');        // Campo da senha
+  const [showPassword, setShowPassword] = useState(false); // Controla se a senha aparece ou não
 
-  // --- Handlers ---
+  // --- ESTADOS DOS MODAIS ---
+  const [showForgotModal, setShowForgotModal] = useState(false); // Modal de "Esqueci a senha"
 
-  const handleSubmit = (event) => {
-    event.preventDefault(); 
+  // Estado para modal de sucesso
+  const [successState, setSuccessState] = useState({
+    show: false,
+    message: ''
+  });
+
+  // Estado para modal de erro
+  const [errorState, setErrorState] = useState({
+    show: false,
+    message: ''
+  });
+
+  // --- CONTEXTO DE AUTENTICAÇÃO ---
+  // Pega a função login() que atualiza o estado global do usuário
+  const { login } = useContext(AuthContext);
+
+  // --- FUNÇÃO DE LOGIN ---
+  const handleSubmit = async (event) => {
+    event.preventDefault(); // Evita reload da página no submit
     
-    // Simulação de Validação
-    if (email === 'teste@exemplo.com' && password === 'senha123') {
-      // Abre o Modal de Sucesso
-      setSuccessState({ 
-        show: true, 
-        message: 'Login realizado com sucesso! Redirecionando...' 
+    setErrorState({ show: false, message: '' }); // Limpa erros anteriores
+
+    try {
+      // 1. Envia email + senha para a API
+      const data = await apiFetch("/autenticacao/login", {
+        method: "POST",
+        body: JSON.stringify({ email: email, senha: password }),
       });
-    
-    } else {
-      // Abre o Modal de Erro
-      setErrorState({ 
-        show: true, 
-        message: 'E-mail ou senha incorretos. Por favor, verifique suas credenciais.' 
+
+      // 2. Salva o token recebido no localStorage
+      localStorage.setItem("feiraPlus_token", data.token);
+
+      // 3. Busca dados do usuário autenticado
+      const dadosUsuario = await apiFetch("/usuarios/me");
+
+      // 4. Atualiza o contexto com token + dados do usuário
+      login(data.token, dadosUsuario);
+
+      // 5. Exibe o modal de sucesso
+      setSuccessState({
+        show: true,
+        message: 'Login realizado com sucesso! Entrando...'
+      });
+
+      // 6. Após 1.5s, chama a função do App.js para mudar tela
+      setTimeout(() => {
+        if (onLogin) {
+          onLogin();
+        }
+      }, 1500);
+
+    } catch (err) {
+      console.error(err);
+
+      // Remove token caso a API tenha retornado erro
+      localStorage.removeItem("feiraPlus_token");
+
+      // Mostra modal de erro com mensagem padrão
+      setErrorState({
+        show: true,
+        message: 'Falha no login. Verifique seu e-mail e senha.'
       });
     }
   };
 
   return (
-    // Container Principal (Fundo Escuro)
+    // Container principal com fundo escuro
     <div className="custom-login-container d-flex justify-content-center align-items-center">
       
-      {/* Card do Formulário (Fundo Branco) */}
-      <div className="card custom-login-card"> 
+      {/* Card branco onde fica o formulário */}
+      <div className="card custom-login-card">
         <div className="card-body">
-          <h2 className="card-title text-center mb-5 custom-login-title"> 
+
+          <h2 className="card-title text-center mb-5 custom-login-title">
             Acesse a sua Conta
           </h2>
 
+          {/* Formulário principal */}
           <form onSubmit={handleSubmit}>
-            
-            {/* Campo de E-mail */}
+
+            {/* INPUT DO E-MAIL */}
             <div className="mb-4">
-              <label htmlFor="email" className="form-label fw-bold"> 
+              <label htmlFor="email" className="form-label fw-bold">
                 Email
               </label>
               <input
                 type="email"
-                className="form-control form-control-lg custom-input" 
+                className="form-control form-control-lg custom-input"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -72,23 +121,26 @@ function Login() {
               />
             </div>
 
-            {/* Campo de Senha com Ícone de Olho */}
+            {/* INPUT DA SENHA + ÍCONE DE MOSTRAR/OCULTAR */}
             <div className="mb-4">
               <label htmlFor="password" className="form-label fw-bold">
                 Senha
               </label>
-              <div className="input-group input-group-lg"> 
+
+              <div className="input-group input-group-lg">
                 <input
-                  type={showPassword ? 'text' : 'password'} 
-                  className="form-control password-input" 
+                  type={showPassword ? 'text' : 'password'}  // alterna visibilidade
+                  className="form-control password-input"
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="********"
                 />
+
+                {/* Botão do olho (mostrar/ocultar senha) */}
                 <button
-                  className="btn d-flex align-items-center justify-content-center btn-password-toggle" 
+                  className="btn d-flex align-items-center justify-content-center btn-password-toggle"
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
@@ -98,49 +150,49 @@ function Login() {
               </div>
             </div>
 
-            {/* Botão de Submissão */}
-            <button 
-              type="submit" 
-              className="btn btn-lg w-100 fw-bold mt-4 custom-btn-primary" 
+            {/* BOTÃO DE LOGIN */}
+            <button
+              type="submit"
+              className="btn btn-lg w-100 fw-bold mt-4 custom-btn-primary"
             >
               Entrar
             </button>
-            
-            {/* Link "Esqueceu a senha?" */}
+
+            {/* LINK "ESQUECI A SENHA" */}
             <div className="text-center mt-4">
-                 <a 
-                    href="#" 
-                    className="custom-link" 
-                    onClick={(e) => { 
-                      e.preventDefault(); 
-                      setShowForgotModal(true); 
-                    }}
-                 >
-                    Esqueceu a senha?
-                 </a>
+              <a
+                href="#"
+                className="custom-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowForgotModal(true);
+                }}
+              >
+                Esqueceu a senha?
+              </a>
             </div>
           </form>
         </div>
       </div>
 
-      {/* --- RENDERIZAÇÃO DOS MODAIS --- */}
+      {/* --- MODAIS --- */}
 
-      {/* 1. Modal de Recuperação de Senha */}
-      <ForgotPasswordModal 
-        show={showForgotModal} 
-        handleClose={() => setShowForgotModal(false)} 
+      {/* Modal de recuperação de senha */}
+      <ForgotPasswordModal
+        show={showForgotModal}
+        handleClose={() => setShowForgotModal(false)}
       />
 
-      {/* 2. Modal de Sucesso (Common) */}
-      <SuccessModal 
-        show={successState.show} 
+      {/* Modal de sucesso genérico */}
+      <SuccessModal
+        show={successState.show}
         message={successState.message}
         handleClose={() => setSuccessState({ ...successState, show: false })}
       />
 
-      {/* 3. Modal de Erro (Common) */}
-      <ErrorModal 
-        show={errorState.show} 
+      {/* Modal de erro genérico */}
+      <ErrorModal
+        show={errorState.show}
         message={errorState.message}
         handleClose={() => setErrorState({ ...errorState, show: false })}
       />
