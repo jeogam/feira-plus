@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import HomeLayout from './components/HomeLayout'
 import Dashboard from './pages/Home/Dashboard'
 import './styles/App.css'
+import GestaoFeiras from './pages/GestaoFeiras';
 
 function App() {
   // Estados de autenticação e navegação
@@ -22,7 +23,7 @@ function App() {
       <HomeLayout>
         {/* Router condicional - renderiza página conforme estado currentPage */}
         {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'feiras' && <div style={{ padding: '20px' }}>Gestão de Feiras</div>}
+        {currentPage === 'feiras' && <GestaoFeiras />}
         {currentPage === 'expositores' && <div style={{ padding: '20px' }}>Expositores</div>}
         {currentPage === 'configuracoes' && <div style={{ padding: '20px' }}>Configurações</div>}
       </HomeLayout>
