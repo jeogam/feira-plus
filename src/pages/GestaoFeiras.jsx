@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import FeiraFormModal from '../components/feiras/FeiraFormModal'; 
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import SuccessModal from '../components/common/SuccessModal';
-import ErrorModal from '../components/common/ErrorModal';
+// import ErrorModal from '../../components/common/ErrorModal'; // Se tiver, descomente
 import { FeiraService } from '../services/FeiraService'; 
+import { AuthContext } from '../context/AuthContext'; // <--- 1. Import do Contexto
 
 const GestaoFeiras = () => {
+  const { user } = useContext(AuthContext); // <--- 2. Pega o usuário logado
+  
   const [feiras, setFeiras] = useState([]);
   const [termoBusca, setTermoBusca] = useState('');
   const [loading, setLoading] = useState(true);
@@ -56,18 +59,26 @@ const GestaoFeiras = () => {
 
   // Salvar ou Atualizar
   const handleSalvar = async (dadosFeira) => {
+    // Verificação de segurança: Usuário existe?
+    if (!user || !user.id) {
+        setMensagemModal("Erro: Usuário não identificado. Faça login novamente.");
+        setShowErrorModal(true);
+        return;
+    }
+
     try {
       if (feiraSelecionada) {
-        // Atualizar
-        await FeiraService.atualizar(feiraSelecionada.id, dadosFeira);
+        // Atualizar - Passamos o ID do usuário também
+        await FeiraService.atualizar(feiraSelecionada.id, dadosFeira, user.id);
         setMensagemModal('Feira atualizada com sucesso!');
       } else {
-        // Criar Nova
-        await FeiraService.salvar(dadosFeira);
+        // Criar Nova - Passamos o ID do usuário logado aqui!
+        await FeiraService.salvar(dadosFeira, user.id); 
         setMensagemModal('Feira cadastrada com sucesso!');
       }
+      
       // Fecha modal e recarrega lista
-      setShowFormModal(false); // Fecha o form antes do sucesso
+      setShowFormModal(false); 
       setShowSuccessModal(true);
       carregarFeiras(); 
     } catch (error) {
@@ -104,8 +115,6 @@ const GestaoFeiras = () => {
     if (feira.tipo === 'PERMANENTE') {
       return <span className="badge bg-info text-dark">{feira.frequencia}</span>;
     } else {
-      // Formata a data se vier do backend (pode vir como array [ano, mes, dia] ou string)
-      // Ajuste conforme o formato que o Java está retornando
       return (
         <small className="text-muted">
           {feira.dataInicio} até {feira.dataFim}
@@ -158,7 +167,6 @@ const GestaoFeiras = () => {
                    <tr><td colSpan="6" className="text-center py-4">Carregando...</td></tr>
                 ) : feirasFiltradas.length > 0 ? (
                   feirasFiltradas.map((feira) => (
-                    // Chave composta para evitar colisão de IDs entre tabelas diferentes do backend
                     <tr key={`${feira.tipo}-${feira.id}`}>
                       <td className="ps-4 fw-bold text-dark">{feira.nome}</td>
                       <td>{feira.local}</td>
@@ -210,7 +218,6 @@ const GestaoFeiras = () => {
         message={mensagemModal}
       />
       
-      {/* Se não tiver o componente ErrorModal criado, use um alert ou crie um simples */}
       {showErrorModal && (
         <div className="alert alert-danger fixed-bottom m-4" role="alert">
            {mensagemModal}

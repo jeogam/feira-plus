@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useState, useEffect } from "react";
-import { apiFetch } from "../services/api.js";
+import api from "../services/api"; // <--- Mudou de { apiFetch } para api
 
 export const AuthContext = createContext();
 
@@ -16,7 +16,8 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           // Tenta buscar os dados do usuário para confirmar que o token é válido
-          const userData = await apiFetch("/usuarios/me");
+          // O api.get já retorna os dados (response.json()) direto
+          const userData = await api.get("/usuarios/me");
           setUser(userData);
         } catch (error) {
           // Se der erro (ex: token expirado), limpa tudo

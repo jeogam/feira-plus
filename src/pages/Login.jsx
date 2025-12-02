@@ -7,7 +7,7 @@ import '../styles/App.css';
 
 // Importa o contexto de autenticação e o serviço de requisições
 import { AuthContext } from "../context/AuthContext.jsx";
-import { apiFetch } from "../services/api";
+import api from "../services/api"; // <--- Mudou de { apiFetch } para api
 
 // Importa os componentes de modais usados na tela
 import ForgotPasswordModal from '../components/Login/ForgotPasswordModal';
@@ -49,16 +49,17 @@ function Login({ onLogin }) {
 
     try {
       // 1. Envia email + senha para a API
-      const data = await apiFetch("/autenticacao/login", {
-        method: "POST",
-        body: JSON.stringify({ email: email, senha: password }),
+      // Usamos api.post agora. Não precisa de JSON.stringify manual nem headers, o api.js faz isso.
+      const data = await api.post("/autenticacao/login", { 
+        email: email, 
+        senha: password 
       });
 
       // 2. Salva o token recebido no localStorage
       localStorage.setItem("feiraPlus_token", data.token);
 
       // 3. Busca dados do usuário autenticado
-      const dadosUsuario = await apiFetch("/usuarios/me");
+      const dadosUsuario = await api.get("/usuarios/me");
 
       // 4. Atualiza o contexto com token + dados do usuário
       login(data.token, dadosUsuario);
