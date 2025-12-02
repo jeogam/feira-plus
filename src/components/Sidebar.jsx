@@ -10,6 +10,7 @@ const Sidebar = ({ activePage, onNavigate }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'feiras', label: 'Gestão de Feiras', icon: '📅' },
+    { id: 'relatorios', label: 'Relatórios', icon: '📈' }, // <-- NOVO ITEM
     { id: 'expositores', label: 'Expositores', icon: '👥' },
     { id: 'configuracoes', label: 'Configurações', icon: '⚙️' },
     { id: 'sair', label: 'Sair', icon: '' },

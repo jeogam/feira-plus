@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import HomeLayout from "./components/HomeLayout";
 import Dashboard from "./pages/Home/Dashboard";
 import GestaoFeiras from "./pages/GestaoFeiras"; 
+import Relatorios from "./pages/Relatorios"; // <-- Importe o novo componente
 
 import { AuthContext } from "./context/AuthContext";
 import "./styles/App.css";
@@ -46,15 +47,17 @@ function App() {
       <HomeLayout>
         {currentPage === "dashboard" && <Dashboard />}
 
-        {/* 🔥 AGORA FUNCIONA DE NOVO */}
         {currentPage === "feiras" && <GestaoFeiras />}
 
+        {/* 🔥 NOVA ROTA DE RELATÓRIOS */}
+        {currentPage === "relatorios" && <Relatorios />}
+
         {currentPage === "expositores" && (
-          <div style={{ padding: "20px" }}>Expositores</div>
+          <div style={{ padding: "20px" }}>Expositores (Em construção)</div>
         )}
 
         {currentPage === "configuracoes" && (
-          <div style={{ padding: "20px" }}>Configurações</div>
+          <div style={{ padding: "20px" }}>Configurações (Em construção)</div>
         )}
       </HomeLayout>
     </div>
