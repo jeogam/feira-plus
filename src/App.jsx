@@ -5,6 +5,7 @@ import HomeLayout from "./components/HomeLayout";
 import Dashboard from "./pages/Home/Dashboard";
 import GestaoFeiras from "./pages/GestaoFeiras"; 
 import Relatorios from "./pages/Relatorios"; // <-- Importe o novo componente
+import GestaoExpositores from "./pages/GestaoExpositores"; // Importação do novo componente
 
 import { AuthContext } from "./context/AuthContext";
 import "./styles/App.css";
@@ -52,9 +53,8 @@ function App() {
         {/* 🔥 NOVA ROTA DE RELATÓRIOS */}
         {currentPage === "relatorios" && <Relatorios />}
 
-        {currentPage === "expositores" && (
-          <div style={{ padding: "20px" }}>Expositores (Em construção)</div>
-        )}
+        {/* Rota de Expositores adicionada */}
+        {currentPage === "expositores" && <GestaoExpositores />}
 
         {currentPage === "configuracoes" && (
           <div style={{ padding: "20px" }}>Configurações (Em construção)</div>
