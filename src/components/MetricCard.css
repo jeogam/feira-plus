@@ -5,12 +5,15 @@
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  /* ADIÇÃO: Garante que o card estique na altura total da coluna do Bootstrap */
+  height: 100%; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.metric-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+/* ... O resto do seu CSS permanece igual ... */
 
 .metric-header {
   display: flex;
@@ -28,6 +31,7 @@
 
 .metric-icon {
   font-size: 24px;
+  /* A cor virá inline do React, removi a cor fixa daqui se houver */
 }
 
 .metric-value {
@@ -45,67 +49,25 @@
 
 /* Tablet */
 @media (max-width: 1024px) {
-  .metric-card {
-    padding: 18px;
-  }
-
-  .metric-value {
-    font-size: 28px;
-  }
+  .metric-card { padding: 18px; }
+  .metric-value { font-size: 28px; }
 }
 
 /* Mobile */
 @media (max-width: 768px) {
-  .metric-card {
-    padding: 16px;
-  }
-
-  .metric-header {
-    margin-bottom: 12px;
-  }
-
-  .metric-title {
-    font-size: 13px;
-  }
-
-  .metric-icon {
-    font-size: 20px;
-  }
-
-  .metric-value {
-    font-size: 24px;
-    margin: 8px 0;
-  }
-
-  .metric-subtext {
-    font-size: 11px;
-  }
+  .metric-card { padding: 16px; }
+  .metric-header { margin-bottom: 12px; }
+  .metric-title { font-size: 13px; }
+  .metric-icon { font-size: 20px; }
+  .metric-value { font-size: 24px; margin: 8px 0; }
+  .metric-subtext { font-size: 11px; }
 }
 
 /* Mobile pequeno */
 @media (max-width: 480px) {
-  .metric-card {
-    padding: 14px;
-  }
-
-  .metric-header {
-    margin-bottom: 10px;
-  }
-
-  .metric-title {
-    font-size: 12px;
-  }
-
-  .metric-icon {
-    font-size: 18px;
-  }
-
-  .metric-value {
-    font-size: 20px;
-    margin: 6px 0;
-  }
-
-  .metric-subtext {
-    font-size: 10px;
-  }
+  .metric-card { padding: 14px; }
+  .metric-title { font-size: 12px; }
+  .metric-icon { font-size: 18px; }
+  .metric-value { font-size: 20px; margin: 6px 0; }
+  .metric-subtext { font-size: 10px; }
 }

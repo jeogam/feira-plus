@@ -17,8 +17,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f6fa; /* Adicionei uma cor de fundo suave para o app */
 }
 
+/* Container pai (opcional manter flex, mas com fixed sidebar não é estritamente necessário) */
 .app-container {
   display: flex;
   min-height: 100vh;
@@ -60,20 +62,87 @@ body {
   color: #888;
 }
 
-
-/* --- Ícones para Modais de confirm,error e succes --- */
-
 /* --- Ícones para Modais de Status --- */
 .modal-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    display: block;
-    text-align: center;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+  text-align: center;
 }
 
 /* Centraliza o texto do corpo do modal de status */
 .text-center-body {
-    text-align: center;
-    font-size: 1.1rem;
-    color: #555;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+/* ==========================================================================
+   NOVO: Lógica de Layout para conviver com a Sidebar Bootstrap Fixa
+   ========================================================================== */
+
+.main-content {
+  /* Empurra o conteúdo para a direita para não ficar embaixo da sidebar */
+  margin-left: 260px; 
+  
+  /* Ocupa o restante da largura */
+  width: calc(100% - 260px); 
+  
+  padding: 30px; /* Espaçamento interno */
+  min-height: 100vh;
+  transition: all 0.3s; /* Suaviza a redimensionamento */
+}
+
+/* --- Mobile Responsivo --- */
+@media (max-width: 768px) {
+  .main-content {
+    /* No mobile, a sidebar vira topo ou some, então removemos a margem */
+    margin-left: 0;
+    width: 100%;
+    padding: 15px;
+    padding-top: 20px;
+  }
+}
+/* Container do SVG */
+.checkmark-svg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 2;
+  stroke: #198754; /* Verde Success */
+  stroke-miterlimit: 10;
+  margin: 0 auto 20px;
+  box-shadow: inset 0px 0px 0px #198754;
+  animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+}
+
+/* Animação do Círculo */
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  stroke: #198754;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+/* Animação do Check (V) */
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes scale {
+  0%, 100% { transform: none; }
+  50% { transform: scale3d(1.1, 1.1, 1); }
+}
+@keyframes fill {
+  100% { box-shadow: inset 0px 0px 0px 50px #d1e7dd; } /* Fundo verde claro */
 }

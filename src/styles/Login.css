@@ -125,3 +125,7 @@
     text-decoration: underline;
     opacity: 0.8; 
 }
+.custom-register-card {
+    max-width: 800px !important; 
+    width: 95%; 
+}

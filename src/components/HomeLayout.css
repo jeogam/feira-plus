@@ -1,23 +1,27 @@
 .home-layout {
-  margin-left: 240px;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 40px 60px;
-  width: calc(100% - 240px);
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  
+  /* Garante altura mínima da tela inteira */
+  min-height: 100vh; 
+  
+  /* Cor de fundo do sistema */
+  background-color: #f5f6fa; 
+  
+  /* Espaçamento interno (topo e lados) */
+  padding-top: 40px;
+  padding-left: 60px;
+  padding-right: 60px;
+  /* Removemos o padding-bottom daqui pois o Footer já tem margem */
+  
+  transition: all 0.3s ease;
 }
 
+/* Responsividade Mobile */
 @media (max-width: 768px) {
   .home-layout {
     margin-left: 0;
-    margin-top: 80px;
-    padding: 20px;
     width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .home-layout {
-    margin-top: 70px;
-    padding: 15px;
+    padding: 20px;
   }
 }

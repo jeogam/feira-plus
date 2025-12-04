@@ -1,176 +1,66 @@
-.sidebar {
-  width: 240px;
-  height: 100vh;
-  background-color: #2c3e50;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  position: fixed;
-  left: 0;
-  top: 0;
-  overflow-y: auto;
-  z-index: 1000;
+/* Sidebar.css */
+
+/* --- Configuração Padrão (Desktop) --- */
+.sidebar-container {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    z-index: 1040; /* Alto z-index para ficar acima do conteúdo */
+    transition: transform 0.3s ease-in-out; /* Animação suave */
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
-.sidebar-header {
-  margin-bottom: 40px;
+/* Hover nos itens */
+.nav-pills .nav-link:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
 }
 
-.sidebar-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #1F2A37;
-  margin: 0 0 5px 0;
-}
-
-.sidebar-subtitle {
-  font-size: 12px;
-  color: #bdc3c7;
-  margin: 0;
-}
-
-.sidebar-nav {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 15px;
-  background: none;
-  border: none;
-  color: #bdc3c7;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: left;
-}
-
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.nav-item.active {
-  background-color: #1F2A37;
-  color: white;
-}
-
-.nav-icon {
-  font-size: 18px;
-  min-width: 18px;
-}
-
-.nav-label {
-  flex: 1;
-}
-
-.sidebar-footer {
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-icon {
-  font-size: 24px;
-}
-
-.user-name {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-}
-
-.user-role {
-  margin: 0;
-  font-size: 12px;
-  color: #bdc3c7;
-}
-
-/* Mobile responsivo */
+/* --- Responsividade (Mobile / Tablet) --- */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    flex-direction: row;
-    padding: 15px;
-    align-items: center;
-    justify-content: space-between;
-  }
+    .sidebar-container {
+        /* Esconde a sidebar jogando ela para a esquerda */
+        transform: translateX(-100%); 
+        width: 260px; /* Mantém largura fixa mesmo no mobile */
+        box-shadow: none;
+    }
 
-  .sidebar-header {
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
+    /* CLASSE MÁGICA: Quando ativa, traz a sidebar de volta */
+    .sidebar-container.mobile-open {
+        transform: translateX(0);
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+    }
 
-  .sidebar-title {
-    font-size: 20px;
-    margin: 0;
-  }
+    /* Botão Hambúrguer (estilização extra se precisar) */
+    .mobile-toggle-btn {
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
 
-  .sidebar-subtitle {
-    display: none;
-  }
+    /* Overlay (Fundo escuro atrás do menu) */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5); /* Preto semitransparente */
+        z-index: 1030; /* Fica abaixo da sidebar (1040) mas acima do resto */
+        animation: fadeIn 0.3s;
+    }
 
-  .sidebar-nav {
-    flex-direction: row;
-    gap: 5px;
-    order: 3;
-    width: 100%;
-    margin-top: 15px;
-  }
-
-  .nav-item {
-    flex: 1;
-    justify-content: center;
-    padding: 10px 8px;
-    font-size: 12px;
-  }
-
-  .nav-label {
-    display: none;
-  }
-
-  .sidebar-footer {
-    display: none;
-  }
+    /* Garantir que textos e rodapés apareçam no menu hambúrguer */
+    .sidebar-container small, 
+    .sidebar-container hr,
+    .dropdown {
+        display: block !important; /* Força exibir itens que escondemos antes */
+    }
 }
 
-@media (max-width: 480px) {
-  .sidebar {
-    padding: 10px;
-  }
-
-  .sidebar-title {
-    font-size: 18px;
-  }
-
-  .sidebar-header {
-    gap: 10px;
-  }
-
-  .nav-item {
-    padding: 8px 5px;
-  }
-
-  .nav-icon {
-    font-size: 16px;
-  }
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

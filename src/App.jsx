@@ -1,38 +1,58 @@
 import { useState, useContext } from "react";
+
+import Register from "./pages/Register"; 
 import Login from "./pages/Login";
 import Sidebar from "./components/Sidebar";
 import HomeLayout from "./components/HomeLayout";
 import Dashboard from "./pages/Home/Dashboard";
 import GestaoFeiras from "./pages/GestaoFeiras"; 
-import Relatorios from "./pages/Relatorios"; // <-- Importe o novo componente
-import GestaoExpositores from "./pages/GestaoExpositores"; // Importação do novo componente
+import Relatorios from "./pages/Relatorios"; 
+import GestaoExpositores from "./pages/GestaoExpositores"; 
 
 import { AuthContext } from "./context/AuthContext";
 import "./styles/App.css";
+import GestaoUsuarios from "./pages/GestaoUsuarios";
 
 function App() {
   const { user, logout, loading } = useContext(AuthContext);
 
-  // Controle simples da página atual
+  // Controle simples da página interna (Dashboard, Feiras, etc.)
   const [currentPage, setCurrentPage] = useState("dashboard");
+
+  // NOVO ESTADO: Controle para alternar entre Login e Cadastro
+  const [isRegistering, setIsRegistering] = useState(false);
 
   // Tela de carregamento
   if (loading) {
-    return <div>Carregando...</div>;
+    return <div className="loading-screen">Carregando...</div>;
   }
 
-  // Se NÃO estiver logado → tela de login
+  // --- LÓGICA DE AUTENTICAÇÃO ---
+  // Se NÃO estiver logado, decide se mostra Login ou Register
   if (!user) {
-    return <Login onLogin={() => {}} />;
+    if (isRegistering) {
+      // Mostra a tela de Registro e passa a função para voltar ao Login
+      return <Register onSwitchToLogin={() => setIsRegistering(false)} />;
+    } else {
+      // Mostra a tela de Login e passa a função para ir ao Registro
+      return (
+        <Login 
+          onLogin={() => {}} // O contexto atualiza o user, o redirecionamento é automático
+          onSwitchToRegister={() => setIsRegistering(true)} 
+        />
+      );
+    }
   }
 
+  // --- ÁREA LOGADA (DASHBOARD) ---
+  
   // Navegação da sidebar
   const handleNavigate = (pageId) => {
     if (pageId === "sair") {
       logout();
+      setIsRegistering(false); // Reseta para login ao sair
       return;
     }
-
     setCurrentPage(pageId);
   };
 
@@ -50,11 +70,11 @@ function App() {
 
         {currentPage === "feiras" && <GestaoFeiras />}
 
-        {/* 🔥 NOVA ROTA DE RELATÓRIOS */}
         {currentPage === "relatorios" && <Relatorios />}
 
-        {/* Rota de Expositores adicionada */}
         {currentPage === "expositores" && <GestaoExpositores />}
+
+        {currentPage === "usuarios" && <GestaoUsuarios />}
 
         {currentPage === "configuracoes" && (
           <div style={{ padding: "20px" }}>Configurações (Em construção)</div>

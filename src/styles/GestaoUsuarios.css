@@ -1,0 +1,46 @@
+/* src/pages/GestaoUsuarios.css */
+
+/* --- Tabela --- */
+
+/* Garante que a coluna de ações tenha espaço suficiente para os 2 botões */
+.col-actions {
+    min-width: 200px; /* Largura fixa mínima */
+    white-space: nowrap; /* Impede quebra de linha */
+}
+
+/* Ajuste fino dos botões de ação para ficarem alinhados */
+.btn-action-custom {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap; /* Texto do botão não quebra */
+}
+
+/* Estado vazio da tabela */
+.empty-state-container {
+    padding: 3rem 0;
+    color: #6c757d;
+    font-weight: bold;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    opacity: 0.5;
+}
+
+/* --- Barra de Busca (Responsiva) --- */
+
+.search-container {
+    width: 100%;
+    /* No mobile ocupa 100%, no desktop trava em 350px */
+    max-width: 350px; 
+}
+
+/* --- Container Principal --- */
+.page-container-bottom {
+    padding-bottom: 4rem; /* Espaço para o footer não colar */
+}
