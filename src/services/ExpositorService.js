@@ -5,7 +5,7 @@ export const ExpositorService = {
     // --- 1. LISTAR TODOS ---
     listarTodos: async () => {
         // O seu api.js já retorna o JSON direto (sem .data)
-        const response = await api.get('/expositores');
+        const response = await api.get('/expositores/buscar-todos');
         return response; 
     },
 
@@ -17,7 +17,7 @@ export const ExpositorService = {
             usuarioId: usuarioId // Adiciona o ID do usuário ao objeto enviado
         };
         
-        const response = await api.post('/expositores', payload);
+        const response = await api.post('/expositores/register', payload);
         return response;
     },
 
@@ -28,13 +28,13 @@ export const ExpositorService = {
             usuarioId: usuarioId
         };
 
-        const response = await api.put(`/expositores/${id}`, payload);
+        const response = await api.put(`/expositores/update/${id}`, payload);
         return response;
     },
 
     // --- 4. DELETAR ---
     excluir: async (id) => {
-        await api.delete(`/expositores/${id}`);
+        await api.delete(`/expositores/delete/${id}`);
         return true;
     },
     

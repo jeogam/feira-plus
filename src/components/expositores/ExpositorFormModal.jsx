@@ -1,119 +1,140 @@
 // src/components/expositores/ExpositorFormModal.js
-
 import React, { useState, useEffect } from 'react';
-
 import { Modal, Form, Button } from 'react-bootstrap'; 
 
+// DTO atualizado conforme o Backend
 const initialFormData = {
     nome: '',
-    email: '',
-    cpfCnpj: '',
-    telefone: '',
-    
+    documentacao: '', // Antigo cpfCnpj
+    status: 'PENDENTE', // Valor padrão para novos cadastros
+    categoriaId: ''     // Obrigatório
 };
 
-const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar }) => {
-    // Estado que armazena os dados do formulário
+// Adicionei a prop 'categorias' para popular o Select
+const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar, categorias = [] }) => {
+    
     const [formData, setFormData] = useState(initialFormData);
 
-    // Efeito para preencher o formulário quando um expositor é passado para edição
     useEffect(() => {
         if (expositorParaEditar) {
             setFormData({ 
                 nome: expositorParaEditar.nome || '', 
-                email: expositorParaEditar.email || '',
-                cpfCnpj: expositorParaEditar.cpfCnpj || '',
-                telefone: expositorParaEditar.telefone || '',
+                // Mapeia o campo do GET (que pode vir como 'documentacao')
+                documentacao: expositorParaEditar.documentacao || '',
+                status: expositorParaEditar.status || 'PENDENTE',
+                // Se vier o objeto categoria completo, pegamos o ID, senão pega o campo ID direto
+                categoriaId: expositorParaEditar.categoriaId || (expositorParaEditar.categoria ? expositorParaEditar.categoria.id : '')
             });
         } else {
-            // Limpa o formulário se estiver em modo de criação
             setFormData(initialFormData);
         }
     }, [expositorParaEditar]);
 
-    // Handler genérico para atualizar o estado ao digitar nos inputs
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Handler para submissão do formulário
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Chama a função handleSave (do componente pai GestaoExpositores) com os dados
+        
+        // Validação simples de categoria
+        if (!formData.categoriaId) {
+            alert("Por favor, selecione uma categoria.");
+            return;
+        }
+
         handleSave(formData);
-        // O handleSave no pai fechará o modal em caso de sucesso
     };
 
-    // Estrutura JSX do Modal
     return (
         <Modal show={show} onHide={handleClose} centered>
-            <Modal.Header closeButton>
-                <Modal.Title className="fw-bold">
+            <Modal.Header closeButton className="bg-light">
+                <Modal.Title className="fw-bold text-secondary">
                     {expositorParaEditar ? 'Editar Expositor' : 'Cadastrar Novo Expositor'}
                 </Modal.Title>
             </Modal.Header>
+            
             <Form onSubmit={handleSubmit}>
-                <Modal.Body>
-                    {/* Campo Nome / Razão Social */}
+                <Modal.Body className="p-4">
+                    
+                    {/* --- NOME --- */}
                     <Form.Group className="mb-3">
-                        <Form.Label>Nome / Razão Social *</Form.Label>
+                        <Form.Label className="fw-semibold">Nome do Expositor *</Form.Label>
                         <Form.Control 
                             type="text" 
                             name="nome"
                             value={formData.nome} 
                             onChange={handleChange} 
                             required 
-                            placeholder="Ex: Fazenda Orgânica LTDA"
-                        />
-                    </Form.Group>
-                    
-                    {/* Campo Email */}
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email *</Form.Label>
-                        <Form.Control 
-                            type="email" 
-                            name="email"
-                            value={formData.email} 
-                            onChange={handleChange} 
-                            required 
-                            placeholder="expositor@contato.com"
+                            placeholder="Ex: Barraca da Maria"
                         />
                     </Form.Group>
 
-                    {/* Campo CPF / CNPJ */}
+                    {/* --- DOCUMENTAÇÃO (CPF/CNPJ) --- */}
                     <Form.Group className="mb-3">
-                        <Form.Label>CPF / CNPJ *</Form.Label>
+                        <Form.Label className="fw-semibold">Documentação (CPF/CNPJ) *</Form.Label>
                         <Form.Control 
                             type="text" 
-                            name="cpfCnpj"
-                            value={formData.cpfCnpj} 
+                            name="documentacao"
+                            value={formData.documentacao} 
                             onChange={handleChange} 
                             required 
-                            placeholder="00.000.000/0001-00 ou 000.000.000-00"
+                            placeholder="000.000.000-00"
                         />
                     </Form.Group>
-                    
-                    {/* Campo Telefone */}
-                    <Form.Group className="mb-3">
-                        <Form.Label>Telefone</Form.Label>
-                        <Form.Control 
-                            type="text" 
-                            name="telefone"
-                            value={formData.telefone} 
-                            onChange={handleChange} 
-                            placeholder="(00) 90000-0000"
-                        />
-                    </Form.Group>
+
+                    <div className="row">
+                        {/* --- SELECT DE CATEGORIA --- */}
+                        <div className="col-md-6">
+                            <Form.Group className="mb-3">
+                                <Form.Label className="fw-semibold">Categoria *</Form.Label>
+                                <Form.Select 
+                                    name="categoriaId"
+                                    value={formData.categoriaId}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">Selecione...</option>
+                                    {categorias.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.nome}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                                {categorias.length === 0 && (
+                                    <Form.Text className="text-danger">
+                                        Nenhuma categoria carregada.
+                                    </Form.Text>
+                                )}
+                            </Form.Group>
+                        </div>
+
+                        {/* --- SELECT DE STATUS --- */}
+                        <div className="col-md-6">
+                            <Form.Group className="mb-3">
+                                <Form.Label className="fw-semibold">Status *</Form.Label>
+                                <Form.Select 
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="PENDENTE">PENDENTE</option>
+                                    <option value="APROVADO">APROVADO</option>
+                                    <option value="REJEITADO">REJEITADO</option>
+                                </Form.Select>
+                            </Form.Group>
+                        </div>
+                    </div>
 
                 </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
+                <Modal.Footer className="bg-light">
+                    <Button variant="outline-secondary" onClick={handleClose}>
                         Cancelar
                     </Button>
-                    <Button type="submit" className="custom-btn-primary" 
-                            style={{ backgroundColor: '#8e44ad', border: 'none' }}>
-                        {expositorParaEditar ? 'Salvar Alterações' : 'Cadastrar Expositor'}
+                    <Button type="submit" variant="success" className="fw-bold">
+                        {expositorParaEditar ? 'Salvar Alterações' : 'Cadastrar'}
                     </Button>
                 </Modal.Footer>
             </Form>

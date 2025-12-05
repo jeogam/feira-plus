@@ -4,9 +4,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import ExpositorFormModal from '../components/expositores/ExpositorFormModal'; 
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import SuccessModal from '../components/common/SuccessModal';
-
+import ErrorModal from '../components/common/ErrorModal'; // Importando o ErrorModal que você já tem
 
 import { ExpositorService } from '../services/ExpositorService'; 
+import api from '../services/api'; // Importando api para buscar categorias
 
 // Contexto de Autenticação para obter dados do usuário logado
 import { AuthContext } from '../context/AuthContext'; 
@@ -17,6 +18,9 @@ const GestaoExpositores = () => {
     
     // Estado para armazenar a lista de expositores
     const [expositores, setExpositores] = useState([]);
+    // Estado para armazenar a lista de categorias (NOVO)
+    const [categorias, setCategorias] = useState([]);
+
     // Estado para armazenar o termo usado na caixa de busca
     const [termoBusca, setTermoBusca] = useState('');
     // Estado para controlar o status de carregamento dos dados
@@ -35,55 +39,63 @@ const GestaoExpositores = () => {
 
     // --- Lógica de Carregamento de Dados ---
     
-    // Função assíncrona para buscar a lista de expositores na API
+    // 1. Carregar Expositores
     const carregarExpositores = async () => {
         setLoading(true);
         try {
-            // Chama o serviço para listar todos os expositores
             const dados = await ExpositorService.listarTodos();
-            // Atualiza o estado com os dados recebidos
             setExpositores(dados);
         } catch (error) {
-            // Define a mensagem de erro e mostra o modal de erro em caso de falha
-            setMensagemModal("Não foi possível carregar os expositores. Verifique se o servidor está rodando.");
+            setMensagemModal("Não foi possível carregar os expositores.");
             setShowErrorModal(true);
         } finally {
-            // Finaliza o estado de carregamento, independentemente do resultado
             setLoading(false);
         }
     };
 
-    // Efeito colateral que executa 'carregarExpositores' na montagem inicial do componente
+    // 2. Carregar Categorias (NOVO)
+    const carregarCategorias = async () => {
+        try {
+            const response = await api.get("/categorias/buscar");
+            let dados;
+            
+            // Lógica robusta igual fizemos na tela de Gestão de Categorias
+            if (Array.isArray(response)) dados = response;
+            else if (Array.isArray(response.data)) dados = response.data;
+            else if (response.data && Array.isArray(response.data.content)) dados = response.data.content;
+            else dados = [];
+
+            setCategorias(dados);
+        } catch (error) {
+            console.error("Erro ao carregar categorias para o select:", error);
+            // Não bloqueamos a tela se falhar, apenas o select ficará vazio
+        }
+    };
+
+    // Efeito colateral que executa na montagem
     useEffect(() => {
         carregarExpositores();
-    }, []); // O array vazio garante que o efeito rode apenas uma vez
+        carregarCategorias(); // Busca as categorias também
+    }, []); 
 
     // --- Funções de Manipulação da Interface e Dados ---
 
-    // Handler para abrir o modal de formulário para criar um novo expositor
     const handleNovo = () => {
-        // Limpa o expositor selecionado (para indicar que é um novo cadastro)
         setExpositorSelecionado(null);
         setShowFormModal(true);
     };
 
-    // Handler para abrir o modal de formulário para editar um expositor existente
     const handleEditar = (expositor) => {
-        // Define o expositor a ser editado
         setExpositorSelecionado(expositor);
         setShowFormModal(true);
     };
 
-    // Handler para abrir o modal de confirmação antes de excluir
     const handleConfirmarExclusao = (expositor) => {
-        // Define o expositor a ser excluído
         setExpositorSelecionado(expositor);
         setShowDeleteModal(true);
     };
 
-    // Handler para salvar ou atualizar os dados de um expositor
     const handleSalvar = async (dadosExpositor) => {
-        // Verifica se o ID do usuário logado está disponível antes de prosseguir
         if (!user || !user.id) {
             setMensagemModal("Erro: Usuário não identificado. Faça login novamente.");
             setShowErrorModal(true);
@@ -92,62 +104,51 @@ const GestaoExpositores = () => {
 
         try {
             if (expositorSelecionado) {
-                // Lógica de Atualização
-                // Chama o serviço para atualizar o expositor, passando o ID do usuário
+                // Atualizar
                 await ExpositorService.atualizar(expositorSelecionado.id, dadosExpositor, user.id);
                 setMensagemModal('Expositor atualizado com sucesso!');
             } else {
-                // Lógica de Criação
-                // Chama o serviço para salvar o novo expositor, passando o ID do usuário
+                // Criar
                 await ExpositorService.salvar(dadosExpositor, user.id); 
                 setMensagemModal('Expositor cadastrado com sucesso!');
             }
             
-            // Fecha o modal de formulário, mostra o modal de sucesso e recarrega a lista
             setShowFormModal(false); 
             setShowSuccessModal(true);
             carregarExpositores(); 
         } catch (error) {
-            // Exibe erro de console e modal de erro em caso de falha no save/update
             console.error(error);
-            setMensagemModal("Erro ao salvar os dados do expositor. Verifique os campos.");
+            setMensagemModal("Erro ao salvar os dados. Verifique os campos.");
             setShowErrorModal(true);
         }
     };
 
-    // Handler para excluir um expositor
     const handleExcluir = async () => {
         try {
             if (expositorSelecionado) {
-                // Chama o serviço para exclusão
                 await ExpositorService.excluir(expositorSelecionado.id);
                 setMensagemModal('Expositor removido com sucesso!');
                 setShowSuccessModal(true);
-                setShowDeleteModal(false); // Fecha o modal de confirmação
+                setShowDeleteModal(false);
                 carregarExpositores();
             }
         } catch (error) {
-            // Exibe erro de console e modal de erro em caso de falha na exclusão
             console.error(error);
             setMensagemModal("Erro ao excluir o expositor.");
             setShowErrorModal(true);
         }
     };
 
-    // --- Filtros e Renderização Condicional ---
-    
-    // Filtra a lista de expositores baseada no termo de busca (nome, email ou CPF/CNPJ)
+    // --- Filtros ---
     const expositoresFiltrados = expositores.filter(expositor => 
         expositor.nome?.toLowerCase().includes(termoBusca.toLowerCase()) ||
-        expositor.email?.toLowerCase().includes(termoBusca.toLowerCase()) ||
-        expositor.cpfCnpj?.includes(termoBusca)
+        expositor.documentacao?.includes(termoBusca) // Atualizado para usar documentacao
     );
 
-    // Estrutura JSX do componente
     return (
         <div className="container-fluid p-4">
             
-            {/* Título e Botão de Ação (Novo Expositor) */}
+            {/* Título e Botão */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2 className="fw-bold" style={{ color: '#1F2A37' }}>Gestão de Expositores</h2>
                 <button className="btn custom-btn-primary" onClick={handleNovo}>
@@ -155,7 +156,7 @@ const GestaoExpositores = () => {
                 </button>
             </div>
 
-            {/* Componente de Busca */}
+            {/* Busca */}
             <div className="card border-0 shadow-sm mb-4">
                 <div className="card-body">
                     <div className="input-group">
@@ -165,7 +166,7 @@ const GestaoExpositores = () => {
                         <input 
                             type="text" 
                             className="form-control border-start-0 ps-0" 
-                            placeholder="Buscar por nome, email ou CPF/CNPJ..." 
+                            placeholder="Buscar por nome ou Documentação..." 
                             value={termoBusca}
                             onChange={(e) => setTermoBusca(e.target.value)}
                         />
@@ -173,38 +174,41 @@ const GestaoExpositores = () => {
                 </div>
             </div>
 
-            {/* Tabela de Expositores */}
+            {/* Tabela */}
             <div className="card border-0 shadow-sm">
                 <div className="card-body p-0">
                     <div className="table-responsive">
                         <table className="table table-hover align-middle mb-0">
                             <thead className="bg-light">
                                 <tr>
-                                    <th className="ps-4">Nome / Empresa</th>
-                                    <th>Email</th>
-                                    <th>CPF / CNPJ</th>
-                                    <th>Feiras Ativas</th>
-                                    <th>Ações</th>
+                                    <th className="ps-4">Nome</th>
+                                    <th>Documentação</th>
+                                    <th>Status</th>
+                                    <th>Categoria</th>
+                                    <th className="text-end pe-4">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* Renderização condicional baseada no estado de loading e dados */}
                                 {loading ? (
                                     <tr><td colSpan="5" className="text-center py-4">Carregando...</td></tr>
                                 ) : expositoresFiltrados.length > 0 ? (
-                                    // Mapeia os expositores filtrados para linhas da tabela
                                     expositoresFiltrados.map((expositor) => (
                                         <tr key={expositor.id}>
-                                            <td className="ps-4 fw-bold text-dark">{expositor.nome || expositor.razaoSocial}</td>
-                                            <td>{expositor.email}</td>
-                                            <td>{expositor.cpfCnpj}</td>
-                                            <td><span className="badge bg-success">{expositor.feirasAtivas || 0}</span></td>
+                                            <td className="ps-4 fw-bold text-dark">{expositor.nome}</td>
+                                            <td>{expositor.documentacao}</td>
+                                            <td>
+                                                <span className={`badge ${expositor.status === 'APROVADO' ? 'bg-success' : 'bg-secondary'}`}>
+                                                    {expositor.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {/* Exibe o nome da categoria se vier populado */}
+                                                {expositor.categoriaNome || (expositor.categoria ? expositor.categoria.nome : '-')}
+                                            </td>
                                             <td className="text-end pe-4">
-                                                {/* Botão de Editar */}
                                                 <button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleEditar(expositor)}>
                                                     <i className="bi bi-pencil"></i>
                                                 </button>
-                                                {/* Botão de Excluir */}
                                                 <button className="btn btn-sm btn-outline-danger" onClick={() => handleConfirmarExclusao(expositor)}>
                                                     <i className="bi bi-trash"></i>
                                                 </button>
@@ -212,7 +216,6 @@ const GestaoExpositores = () => {
                                         </tr>
                                     ))
                                 ) : (
-                                    // Mensagem exibida se não houver resultados após o carregamento
                                     <tr>
                                         <td colSpan="5" className="text-center py-4 text-muted">Nenhum expositor encontrado.</td>
                                     </tr>
@@ -223,40 +226,36 @@ const GestaoExpositores = () => {
                 </div>
             </div>
 
-            {/* Modais de Interface */}
+            {/* --- Modais --- */}
             
-            {/* Modal de Cadastro/Edição de Expositor */}
+            {/* Modal de Cadastro/Edição: Agora recebe as CATEGORIAS */}
             <ExpositorFormModal 
                 show={showFormModal}
                 handleClose={() => setShowFormModal(false)}
                 handleSave={handleSalvar}
                 expositorParaEditar={expositorSelecionado}
+                categorias={categorias} // <--- AQUI ESTÁ A CORREÇÃO PRINCIPAL
             />
 
-            {/* Modal de Confirmação de Exclusão */}
             <ConfirmationModal
                 show={showDeleteModal}
                 handleClose={() => setShowDeleteModal(false)}
                 onConfirm={handleExcluir}
                 title="Excluir Expositor"
-                // Exibe o nome ou razão social do expositor selecionado na mensagem
-                message={`Tem certeza que deseja excluir o expositor "${expositorSelecionado?.nome || expositorSelecionado?.razaoSocial}"?`}
+                message={`Tem certeza que deseja excluir o expositor "${expositorSelecionado?.nome}"?`}
             />
 
-            {/* Modal de Sucesso */}
             <SuccessModal
                 show={showSuccessModal}
                 handleClose={() => setShowSuccessModal(false)}
                 message={mensagemModal}
             />
             
-            {/* Modal/Alerta de Erro (Renderização condicional) */}
-            {showErrorModal && (
-                <div className="alert alert-danger fixed-bottom m-4" role="alert">
-                   {mensagemModal}
-                   <button type="button" className="btn-close float-end" onClick={() => setShowErrorModal(false)}></button>
-                </div>
-            )}
+            <ErrorModal 
+               show={showErrorModal}
+               handleClose={() => setShowErrorModal(false)}
+               message={mensagemModal}
+            />
         </div>
     );
 };

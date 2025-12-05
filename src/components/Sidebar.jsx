@@ -11,6 +11,8 @@ const Sidebar = ({ activePage, onNavigate }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-chart-line' },
     { id: 'feiras', label: 'Gestão de Feiras', icon: 'fas fa-calendar-check' },
+    // --- NOVO ITEM ADICIONADO AQUI ---
+    { id: 'categorias', label: 'Categorias', icon: 'fas fa-tags' }, 
     { id: 'relatorios', label: 'Relatórios', icon: 'fas fa-chart-pie' },
     { id: 'expositores', label: 'Expositores', icon: 'fas fa-store' },
     { id: 'usuarios', label: 'Usuários', icon: 'fas fa-users-cog' },

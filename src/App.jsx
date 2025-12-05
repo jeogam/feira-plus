@@ -12,6 +12,7 @@ import GestaoExpositores from "./pages/GestaoExpositores";
 import { AuthContext } from "./context/AuthContext";
 import "./styles/App.css";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
+import GestaoCategorias from "./pages/GestaoCategorias";
 
 function App() {
   const { user, logout, loading } = useContext(AuthContext);
@@ -75,6 +76,9 @@ function App() {
         {currentPage === "expositores" && <GestaoExpositores />}
 
         {currentPage === "usuarios" && <GestaoUsuarios />}
+
+        {currentPage === "categorias" && <GestaoCategorias />}
+
 
         {currentPage === "configuracoes" && (
           <div style={{ padding: "20px" }}>Configurações (Em construção)</div>
