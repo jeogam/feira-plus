@@ -1,71 +1,61 @@
 // src/components/expositores/ExpositorFormModal.js
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Button } from 'react-bootstrap';
+import { Modal, Form, Button } from 'react-bootstrap'; 
 
-/**
- * Estado inicial do formulário.
- * Estruturado para refletir o DTO do backend e garantir consistência.
- */
+// DTO inicial que mapeia para o ExpositorPostDto do backend
 const initialFormData = {
     nome: '',
-    documentacao: '',
-    status: 'ATIVO',     // Valor padrão conforme enum do backend (StatusExpositor)
-    categoriaId: ''
+    documentacao: '', 
+    status: 'PENDENTE', // Valor padrão para novos cadastros
+    categoriaId: ''     // 
 };
 
 /**
- * Modal para criação e edição de Expositores.
- *
- * Props:
- * - show: controla a exibição do modal.
- * - handleClose: função para fechar o modal.
- * - handleSave: callback para salvar os dados.
- * - expositorParaEditar: objeto enviado quando o usuário opta por editar.
- * - categorias: lista utilizada para preencher o select de categoria.
+ * Modal de formulário para cadastro e edição de expositores.
+ * * @param {boolean} show - Controla a visibilidade do modal.
+ * @param {function} handleClose - Fecha o modal.
+ * @param {function} handleSave - Função de callback para salvar (POST/PUT) no backend.
+ * @param {object | null} expositorParaEditar - Dados do expositor se estiver em modo edição.
+ * @param {Array<object>} categorias - Lista de categorias para popular o select.
  */
-
-
 const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar, categorias = [] }) => {
-
+    
     const [formData, setFormData] = useState(initialFormData);
 
-    /**
-     * Preenche o formulário automaticamente caso esteja editando.
-     * Mantém compatibilidade tanto com objetos flat quanto com relações via objeto "categoria".
-     */
+    // Efeito para carregar os dados ao editar
     useEffect(() => {
         if (expositorParaEditar) {
-            setFormData({
-                nome: expositorParaEditar.nome || '',
+            setFormData({ 
+                // Adiciona o 'id' ao DTO apenas se estiver editando
+                id: expositorParaEditar.id, 
+                nome: expositorParaEditar.nome || '', 
                 documentacao: expositorParaEditar.documentacao || '',
-                status: expositorParaEditar.status || 'ATIVO',
-                categoriaId:
-                    expositorParaEditar.categoriaId ||
-                    (expositorParaEditar.categoria ? expositorParaEditar.categoria.id : '')
+                status: expositorParaEditar.status || 'PENDENTE',
+                // Pega o ID da categoria do DTO de GET (que você já ajustou)
+                categoriaId: expositorParaEditar.categoriaId || ''
             });
         } else {
+            // Reseta para o estado inicial ao abrir para novo cadastro
             setFormData(initialFormData);
         }
     }, [expositorParaEditar]);
 
-    /** Atualiza o estado do formulário de maneira controlada */
     const handleChange = (e) => {
         const { name, value } = e.target;
+        // Atualiza qualquer campo do formulário
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    /**
-     * Envia os dados validados para o handler externo.
-     * Realiza validação mínima para evitar inconsistências antes da API.
-     */
     const handleSubmit = (e) => {
         e.preventDefault();
-
+        
+        // Validação simples de categoria antes de enviar
         if (!formData.categoriaId) {
             alert("Por favor, selecione uma categoria.");
             return;
         }
 
+        // Chama a função de salvamento do componente pai, passando todos os dados
         handleSave(formData);
     };
 
@@ -76,43 +66,42 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
                     {expositorParaEditar ? 'Editar Expositor' : 'Cadastrar Novo Expositor'}
                 </Modal.Title>
             </Modal.Header>
-
+            
             <Form onSubmit={handleSubmit}>
                 <Modal.Body className="p-4">
-
-                    {/* Campo: Nome */}
+                    
+                    {/* --- NOME --- */}
                     <Form.Group className="mb-3">
                         <Form.Label className="fw-semibold">Nome do Expositor *</Form.Label>
-                        <Form.Control
-                            type="text"
+                        <Form.Control 
+                            type="text" 
                             name="nome"
-                            value={formData.nome}
-                            onChange={handleChange}
-                            required
+                            value={formData.nome} 
+                            onChange={handleChange} 
+                            required 
                             placeholder="Ex: Barraca da Maria"
                         />
                     </Form.Group>
 
-                    {/* Campo: Documentação */}
+                    {/* --- DOCUMENTAÇÃO (CPF/CNPJ) --- */}
                     <Form.Group className="mb-3">
                         <Form.Label className="fw-semibold">Documentação (CPF/CNPJ) *</Form.Label>
-                        <Form.Control
-                            type="text"
+                        <Form.Control 
+                            type="text" 
                             name="documentacao"
-                            value={formData.documentacao}
-                            onChange={handleChange}
-                            required
+                            value={formData.documentacao} 
+                            onChange={handleChange} 
+                            required 
                             placeholder="000.000.000-00"
                         />
                     </Form.Group>
 
                     <div className="row">
-
-                        {/* Select: Categoria (chave estrangeira obrigatória) */}
+                        {/* --- SELECT DE CATEGORIA --- */}
                         <div className="col-md-6">
                             <Form.Group className="mb-3">
                                 <Form.Label className="fw-semibold">Categoria *</Form.Label>
-                                <Form.Select
+                                <Form.Select 
                                     name="categoriaId"
                                     value={formData.categoriaId}
                                     onChange={handleChange}
@@ -120,6 +109,7 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
                                 >
                                     <option value="">Selecione...</option>
                                     {categorias.map((cat) => (
+                                        // O valor é o ID, o que o backend espera
                                         <option key={cat.id} value={cat.id}>
                                             {cat.nome}
                                         </option>
@@ -133,27 +123,26 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
                             </Form.Group>
                         </div>
 
-                        {/* Select: Status (mapeado diretamente do enum StatusExpositor) */}
+                        {/* --- SELECT DE STATUS --- */}
                         <div className="col-md-6">
                             <Form.Group className="mb-3">
                                 <Form.Label className="fw-semibold">Status *</Form.Label>
-                                <Form.Select
+                                <Form.Select 
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
                                     required
                                 >
-                                    {/* Os valores devem refletir exatamente o enum do backend */}
-                                    <option value="ATIVO">ATIVO</option>
-                                    <option value="INATIVO">INATIVO</option>
+                                    {/* Os values devem corresponder aos nomes do Enum StatusExpositor em Java */}
+                                    <option value="PENDENTE">PENDENTE</option>
+                                    <option value="APROVADO">APROVADO</option>
+                                    <option value="REJEITADO">REJEITADO</option>
                                 </Form.Select>
                             </Form.Group>
                         </div>
-
                     </div>
 
                 </Modal.Body>
-
                 <Modal.Footer className="bg-light">
                     <Button variant="outline-secondary" onClick={handleClose}>
                         Cancelar
