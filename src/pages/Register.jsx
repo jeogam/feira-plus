@@ -36,7 +36,7 @@ function Register({ onSwitchToLogin }) {
         perfilUsuario: perfil 
       };
 
-      await api.post("/usuarios", payload);
+      await api.post("/usuarios/register", payload);
 
       setSuccessState({
         show: true,
