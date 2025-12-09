@@ -1,24 +1,24 @@
 import React, { useState, useEffect, useContext } from 'react';
-import ExpositorFormModal from '../components/expositores/ExpositorFormModal'; 
+import ExpositorFormModal from '../components/expositores/ExpositorFormModal';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import SuccessModal from '../components/common/SuccessModal';
-import ErrorModal from '../components/common/ErrorModal'; 
+import ErrorModal from '../components/common/ErrorModal';
 
-import { ExpositorService } from '../services/ExpositorService'; 
-import api from '../services/api'; 
+import { ExpositorService } from '../services/ExpositorService';
+import api from '../services/api';
 
-import { AuthContext } from '../context/AuthContext'; 
+import { AuthContext } from '../context/AuthContext';
 
 const GestaoExpositores = () => {
     // Obtém o objeto 'user' do contexto de autenticação
-    const { user } = useContext(AuthContext); 
-    
+    const { user } = useContext(AuthContext);
+
     // --- ESTADOS DE DADOS E PAGINAÇÃO ---
     const [expositores, setExpositores] = useState([]);
     const [categorias, setCategorias] = useState([]);
     const [termoBusca, setTermoBusca] = useState('');
     const [loading, setLoading] = useState(true);
-    
+
     // NOVO: Estados para Filtro e Paginação
     const [categoriaFiltro, setCategoriaFiltro] = useState(''); // ID ou nome da categoria para filtrar
     const [currentPage, setCurrentPage] = useState(0); // Página atual (começa em 0 no backend)
@@ -34,21 +34,21 @@ const GestaoExpositores = () => {
     const [mensagemModal, setMensagemModal] = useState('');
 
     // --- Lógica de Carregamento de Dados ---
-    
+
     // 1. Carregar Expositores (MODIFICADO para suportar Filtro/Paginação)
     const carregarExpositores = async (page = 0, categoriaNome = '') => {
         setLoading(true);
         try {
             let dados;
-            
+
             if (categoriaNome) {
                 // Se houver filtro por categoria, usa o endpoint paginado
                 const response = await ExpositorService.buscarPorCategoriaPaginado(categoriaNome, page, pageSize);
-                
+
                 dados = response.content || [];
                 setCurrentPage(response.number || 0);
                 setTotalPages(response.totalPages || 0);
-                
+
             } else {
                 // Se não houver filtro, usa o findAll (sem paginação/filtro)
                 // OBS: O ideal seria ter um findAll paginado também, mas seguindo o backend atual:
@@ -56,9 +56,9 @@ const GestaoExpositores = () => {
                 setCurrentPage(0);
                 setTotalPages(1); // Simula 1 página no total
             }
-            
+
             setExpositores(dados);
-            
+
         } catch (error) {
             console.error("Erro ao carregar expositores:", error);
             setMensagemModal("Não foi possível carregar os expositores.");
@@ -74,8 +74,9 @@ const GestaoExpositores = () => {
         try {
             const response = await api.get("/categorias/buscar"); // Assumindo que este endpoint retorna a lista
             let dados;
-            
-            if (Array.isArray(response.data)) dados = response.data;
+
+            if (Array.isArray(response)) dados = response;
+            else if (Array.isArray(response.data)) dados = response.data;
             else if (response.data && Array.isArray(response.data.content)) dados = response.data.content;
             else dados = [];
 
@@ -89,12 +90,12 @@ const GestaoExpositores = () => {
     useEffect(() => {
         // Recarrega sempre que a página atual ou o filtro de categoria mudar
         carregarExpositores(currentPage, categoriaFiltro);
-    }, [currentPage, categoriaFiltro]); 
-    
+    }, [currentPage, categoriaFiltro]);
+
     // Efeito para carregar as categorias apenas na montagem
     useEffect(() => {
         carregarCategorias();
-    }, []); 
+    }, []);
 
     // --- Funções de Manipulação da Interface e Dados (MUITO SIMILARES) ---
 
@@ -127,14 +128,14 @@ const GestaoExpositores = () => {
                 setMensagemModal('Expositor atualizado com sucesso!');
             } else {
                 // Criar
-                await ExpositorService.salvar(dadosExpositor, user.id); 
+                await ExpositorService.salvar(dadosExpositor, user.id);
                 setMensagemModal('Expositor cadastrado com sucesso!');
             }
-            
-            setShowFormModal(false); 
+
+            setShowFormModal(false);
             setShowSuccessModal(true);
             // Recarrega a lista na página e filtro atuais
-            carregarExpositores(currentPage, categoriaFiltro); 
+            carregarExpositores(currentPage, categoriaFiltro);
         } catch (error) {
             console.error(error);
             setMensagemModal("Erro ao salvar os dados. Verifique os campos.");
@@ -158,15 +159,15 @@ const GestaoExpositores = () => {
             setShowErrorModal(true);
         }
     };
-    
+
     // --- Funções de Manipulação de Filtro/Paginação ---
-    
+
     const handleFiltroCategoriaChange = (e) => {
         const novoFiltro = e.target.value;
         setCategoriaFiltro(novoFiltro);
         setCurrentPage(0); // Sempre volta para a primeira página ao mudar o filtro
     }
-    
+
     const handleProximaPagina = () => {
         if (currentPage < totalPages - 1) {
             setCurrentPage(currentPage + 1);
@@ -182,14 +183,14 @@ const GestaoExpositores = () => {
     // --- Filtros (Mantido, mas só funciona na lista em memória se o findAll for usado) ---
     // NOTA: Se o filtro de categoria estiver ativo, o filtro por termo é aplicado
     // APENAS nos resultados da página atual. O ideal seria fazer a busca no backend.
-    const expositoresFiltrados = expositores.filter(expositor => 
+    const expositoresFiltrados = expositores.filter(expositor =>
         expositor.nome?.toLowerCase().includes(termoBusca.toLowerCase()) ||
-        expositor.documentacao?.includes(termoBusca) 
+        expositor.documentacao?.includes(termoBusca)
     );
 
     return (
         <div className="container-fluid p-4">
-            
+
             {/* Título e Botão */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2 className="fw-bold" style={{ color: '#1F2A37' }}>Gestão de Expositores</h2>
@@ -208,10 +209,10 @@ const GestaoExpositores = () => {
                                 <span className="input-group-text bg-white border-end-0">
                                     <i className="bi bi-search text-muted"></i>
                                 </span>
-                                <input 
-                                    type="text" 
-                                    className="form-control border-start-0 ps-0" 
-                                    placeholder="Buscar por nome ou Documentação (Filtra na lista atual)..." 
+                                <input
+                                    type="text"
+                                    className="form-control border-start-0 ps-0"
+                                    placeholder="Buscar por nome ou Documentação (Filtra na lista atual)..."
                                     value={termoBusca}
                                     onChange={(e) => setTermoBusca(e.target.value)}
                                 />
@@ -291,8 +292,8 @@ const GestaoExpositores = () => {
             {/* Controles de Paginação (NOVO) */}
             {categoriaFiltro && totalPages > 1 && (
                 <div className="d-flex justify-content-center align-items-center mt-4">
-                    <button 
-                        className="btn btn-outline-secondary me-3" 
+                    <button
+                        className="btn btn-outline-secondary me-3"
                         onClick={handlePaginaAnterior}
                         disabled={currentPage === 0 || loading}
                     >
@@ -301,8 +302,8 @@ const GestaoExpositores = () => {
                     <span className="text-muted">
                         Página {currentPage + 1} de {totalPages}
                     </span>
-                    <button 
-                        className="btn btn-outline-secondary ms-3" 
+                    <button
+                        className="btn btn-outline-secondary ms-3"
                         onClick={handleProximaPagina}
                         disabled={currentPage === totalPages - 1 || loading}
                     >
@@ -310,15 +311,15 @@ const GestaoExpositores = () => {
                     </button>
                 </div>
             )}
-            
+
             {/* --- Modais --- */}
-            
-            <ExpositorFormModal 
+
+            <ExpositorFormModal
                 show={showFormModal}
                 handleClose={() => setShowFormModal(false)}
                 handleSave={handleSalvar}
                 expositorParaEditar={expositorSelecionado}
-                categorias={categorias} 
+                categorias={categorias}
             />
 
             <ConfirmationModal
@@ -334,11 +335,11 @@ const GestaoExpositores = () => {
                 handleClose={() => setShowSuccessModal(false)}
                 message={mensagemModal}
             />
-            
-            <ErrorModal 
-               show={showErrorModal}
-               handleClose={() => setShowErrorModal(false)}
-               message={mensagemModal}
+
+            <ErrorModal
+                show={showErrorModal}
+                handleClose={() => setShowErrorModal(false)}
+                message={mensagemModal}
             />
         </div>
     );
