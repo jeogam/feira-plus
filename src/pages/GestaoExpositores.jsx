@@ -1,84 +1,102 @@
-// src/pages/GestaoExpositores.js
-
 import React, { useState, useEffect, useContext } from 'react';
 import ExpositorFormModal from '../components/expositores/ExpositorFormModal'; 
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import SuccessModal from '../components/common/SuccessModal';
-import ErrorModal from '../components/common/ErrorModal'; // Importando o ErrorModal que você já tem
+import ErrorModal from '../components/common/ErrorModal'; 
 
 import { ExpositorService } from '../services/ExpositorService'; 
-import api from '../services/api'; // Importando api para buscar categorias
+import api from '../services/api'; 
 
-// Contexto de Autenticação para obter dados do usuário logado
 import { AuthContext } from '../context/AuthContext'; 
 
 const GestaoExpositores = () => {
     // Obtém o objeto 'user' do contexto de autenticação
     const { user } = useContext(AuthContext); 
     
-    // Estado para armazenar a lista de expositores
+    // --- ESTADOS DE DADOS E PAGINAÇÃO ---
     const [expositores, setExpositores] = useState([]);
-    // Estado para armazenar a lista de categorias (NOVO)
     const [categorias, setCategorias] = useState([]);
-
-    // Estado para armazenar o termo usado na caixa de busca
     const [termoBusca, setTermoBusca] = useState('');
-    // Estado para controlar o status de carregamento dos dados
     const [loading, setLoading] = useState(true);
     
-    // Estados para controlar a visibilidade dos modais de interface
+    // NOVO: Estados para Filtro e Paginação
+    const [categoriaFiltro, setCategoriaFiltro] = useState(''); // ID ou nome da categoria para filtrar
+    const [currentPage, setCurrentPage] = useState(0); // Página atual (começa em 0 no backend)
+    const [totalPages, setTotalPages] = useState(0); // Total de páginas
+    const pageSize = 10; // Tamanho da página fixo (pode ser ajustado)
+
+    // --- ESTADOS DE MODAIS E MENSAGENS ---
     const [showFormModal, setShowFormModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
-    
-    // Estado para armazenar o expositor sendo editado ou excluído
     const [expositorSelecionado, setExpositorSelecionado] = useState(null);
-    // Estado para armazenar a mensagem exibida nos modais (sucesso/erro)
     const [mensagemModal, setMensagemModal] = useState('');
 
     // --- Lógica de Carregamento de Dados ---
     
-    // 1. Carregar Expositores
-    const carregarExpositores = async () => {
+    // 1. Carregar Expositores (MODIFICADO para suportar Filtro/Paginação)
+    const carregarExpositores = async (page = 0, categoriaNome = '') => {
         setLoading(true);
         try {
-            const dados = await ExpositorService.listarTodos();
+            let dados;
+            
+            if (categoriaNome) {
+                // Se houver filtro por categoria, usa o endpoint paginado
+                const response = await ExpositorService.buscarPorCategoriaPaginado(categoriaNome, page, pageSize);
+                
+                dados = response.content || [];
+                setCurrentPage(response.number || 0);
+                setTotalPages(response.totalPages || 0);
+                
+            } else {
+                // Se não houver filtro, usa o findAll (sem paginação/filtro)
+                // OBS: O ideal seria ter um findAll paginado também, mas seguindo o backend atual:
+                dados = await ExpositorService.listarTodos();
+                setCurrentPage(0);
+                setTotalPages(1); // Simula 1 página no total
+            }
+            
             setExpositores(dados);
+            
         } catch (error) {
+            console.error("Erro ao carregar expositores:", error);
             setMensagemModal("Não foi possível carregar os expositores.");
             setShowErrorModal(true);
+            setExpositores([]); // Garante que a lista fique vazia em caso de erro
         } finally {
             setLoading(false);
         }
     };
 
-    // 2. Carregar Categorias (NOVO)
+    // 2. Carregar Categorias (Inalterado, mas crucial para o filtro)
     const carregarCategorias = async () => {
         try {
-            const response = await api.get("/categorias/buscar");
+            const response = await api.get("/categorias/buscar"); // Assumindo que este endpoint retorna a lista
             let dados;
             
-            // Lógica robusta igual fizemos na tela de Gestão de Categorias
-            if (Array.isArray(response)) dados = response;
-            else if (Array.isArray(response.data)) dados = response.data;
+            if (Array.isArray(response.data)) dados = response.data;
             else if (response.data && Array.isArray(response.data.content)) dados = response.data.content;
             else dados = [];
 
             setCategorias(dados);
         } catch (error) {
             console.error("Erro ao carregar categorias para o select:", error);
-            // Não bloqueamos a tela se falhar, apenas o select ficará vazio
         }
     };
 
-    // Efeito colateral que executa na montagem
+    // Efeito colateral que executa na montagem e na mudança da página/filtro
     useEffect(() => {
-        carregarExpositores();
-        carregarCategorias(); // Busca as categorias também
+        // Recarrega sempre que a página atual ou o filtro de categoria mudar
+        carregarExpositores(currentPage, categoriaFiltro);
+    }, [currentPage, categoriaFiltro]); 
+    
+    // Efeito para carregar as categorias apenas na montagem
+    useEffect(() => {
+        carregarCategorias();
     }, []); 
 
-    // --- Funções de Manipulação da Interface e Dados ---
+    // --- Funções de Manipulação da Interface e Dados (MUITO SIMILARES) ---
 
     const handleNovo = () => {
         setExpositorSelecionado(null);
@@ -115,7 +133,8 @@ const GestaoExpositores = () => {
             
             setShowFormModal(false); 
             setShowSuccessModal(true);
-            carregarExpositores(); 
+            // Recarrega a lista na página e filtro atuais
+            carregarExpositores(currentPage, categoriaFiltro); 
         } catch (error) {
             console.error(error);
             setMensagemModal("Erro ao salvar os dados. Verifique os campos.");
@@ -130,7 +149,8 @@ const GestaoExpositores = () => {
                 setMensagemModal('Expositor removido com sucesso!');
                 setShowSuccessModal(true);
                 setShowDeleteModal(false);
-                carregarExpositores();
+                // Recarrega a lista
+                carregarExpositores(currentPage, categoriaFiltro);
             }
         } catch (error) {
             console.error(error);
@@ -138,11 +158,33 @@ const GestaoExpositores = () => {
             setShowErrorModal(true);
         }
     };
+    
+    // --- Funções de Manipulação de Filtro/Paginação ---
+    
+    const handleFiltroCategoriaChange = (e) => {
+        const novoFiltro = e.target.value;
+        setCategoriaFiltro(novoFiltro);
+        setCurrentPage(0); // Sempre volta para a primeira página ao mudar o filtro
+    }
+    
+    const handleProximaPagina = () => {
+        if (currentPage < totalPages - 1) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
 
-    // --- Filtros ---
+    const handlePaginaAnterior = () => {
+        if (currentPage > 0) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    // --- Filtros (Mantido, mas só funciona na lista em memória se o findAll for usado) ---
+    // NOTA: Se o filtro de categoria estiver ativo, o filtro por termo é aplicado
+    // APENAS nos resultados da página atual. O ideal seria fazer a busca no backend.
     const expositoresFiltrados = expositores.filter(expositor => 
         expositor.nome?.toLowerCase().includes(termoBusca.toLowerCase()) ||
-        expositor.documentacao?.includes(termoBusca) // Atualizado para usar documentacao
+        expositor.documentacao?.includes(termoBusca) 
     );
 
     return (
@@ -156,20 +198,40 @@ const GestaoExpositores = () => {
                 </button>
             </div>
 
-            {/* Busca */}
+            {/* Busca e Filtro de Categoria (MODIFICADO) */}
             <div className="card border-0 shadow-sm mb-4">
                 <div className="card-body">
-                    <div className="input-group">
-                        <span className="input-group-text bg-white border-end-0">
-                            <i className="bi bi-search text-muted"></i>
-                        </span>
-                        <input 
-                            type="text" 
-                            className="form-control border-start-0 ps-0" 
-                            placeholder="Buscar por nome ou Documentação..." 
-                            value={termoBusca}
-                            onChange={(e) => setTermoBusca(e.target.value)}
-                        />
+                    <div className="row g-3">
+                        {/* Campo de Busca por Nome/Documentação */}
+                        <div className="col-md-8">
+                            <div className="input-group">
+                                <span className="input-group-text bg-white border-end-0">
+                                    <i className="bi bi-search text-muted"></i>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    className="form-control border-start-0 ps-0" 
+                                    placeholder="Buscar por nome ou Documentação (Filtra na lista atual)..." 
+                                    value={termoBusca}
+                                    onChange={(e) => setTermoBusca(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        {/* Dropdown de Filtro por Categoria */}
+                        <div className="col-md-4">
+                            <select
+                                className="form-select"
+                                value={categoriaFiltro}
+                                onChange={handleFiltroCategoriaChange}
+                            >
+                                <option value="">Todas as Categorias</option>
+                                {categorias.map(cat => (
+                                    <option key={cat.id} value={cat.nome}>
+                                        {cat.nome}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -202,8 +264,8 @@ const GestaoExpositores = () => {
                                                 </span>
                                             </td>
                                             <td>
-                                                {/* Exibe o nome da categoria se vier populado */}
-                                                {expositor.categoriaNome || (expositor.categoria ? expositor.categoria.nome : '-')}
+                                                {/* Exibe a categoria do DTO (categoriaNome) */}
+                                                {expositor.categoriaNome || '-'}
                                             </td>
                                             <td className="text-end pe-4">
                                                 <button className="btn btn-sm btn-outline-primary me-2" onClick={() => handleEditar(expositor)}>
@@ -226,15 +288,37 @@ const GestaoExpositores = () => {
                 </div>
             </div>
 
+            {/* Controles de Paginação (NOVO) */}
+            {categoriaFiltro && totalPages > 1 && (
+                <div className="d-flex justify-content-center align-items-center mt-4">
+                    <button 
+                        className="btn btn-outline-secondary me-3" 
+                        onClick={handlePaginaAnterior}
+                        disabled={currentPage === 0 || loading}
+                    >
+                        Anterior
+                    </button>
+                    <span className="text-muted">
+                        Página {currentPage + 1} de {totalPages}
+                    </span>
+                    <button 
+                        className="btn btn-outline-secondary ms-3" 
+                        onClick={handleProximaPagina}
+                        disabled={currentPage === totalPages - 1 || loading}
+                    >
+                        Próxima
+                    </button>
+                </div>
+            )}
+            
             {/* --- Modais --- */}
             
-            {/* Modal de Cadastro/Edição: Agora recebe as CATEGORIAS */}
             <ExpositorFormModal 
                 show={showFormModal}
                 handleClose={() => setShowFormModal(false)}
                 handleSave={handleSalvar}
                 expositorParaEditar={expositorSelecionado}
-                categorias={categorias} // <--- AQUI ESTÁ A CORREÇÃO PRINCIPAL
+                categorias={categorias} 
             />
 
             <ConfirmationModal
