@@ -9,7 +9,6 @@ const Sidebar = ({ activePage, onNavigate }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-chart-line' },
     { id: 'feiras', label: 'Gestão de Feiras', icon: 'fas fa-calendar-check' },
     // --- NOVO ITEM ADICIONADO AQUI ---
     { id: 'categorias', label: 'Categorias', icon: 'fas fa-tags' }, 

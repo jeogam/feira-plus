@@ -6,7 +6,7 @@ import { Modal, Form, Button } from 'react-bootstrap';
 const initialFormData = {
     nome: '',
     documentacao: '', 
-    status: 'PENDENTE', // Valor padrão para novos cadastros
+    status: 'ATIVO', // Valor padrão para novos cadastros
     categoriaId: ''     // 
 };
 
@@ -30,7 +30,7 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
                 id: expositorParaEditar.id, 
                 nome: expositorParaEditar.nome || '', 
                 documentacao: expositorParaEditar.documentacao || '',
-                status: expositorParaEditar.status || 'PENDENTE',
+                status: expositorParaEditar.status || 'ATIVO',
                 // Pega o ID da categoria do DTO de GET (que você já ajustou)
                 categoriaId: expositorParaEditar.categoriaId || ''
             });

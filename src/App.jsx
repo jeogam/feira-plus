@@ -67,8 +67,6 @@ function App() {
       />
 
       <HomeLayout>
-        {currentPage === "dashboard" && <Dashboard />}
-
         {currentPage === "feiras" && <GestaoFeiras />}
 
         {currentPage === "relatorios" && <Relatorios />}
