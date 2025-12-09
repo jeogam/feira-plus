@@ -2,16 +2,21 @@ import React, { useState, useEffect, useContext } from 'react';
 import FeiraFormModal from '../components/feiras/FeiraFormModal'; 
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import SuccessModal from '../components/common/SuccessModal';
-// import ErrorModal from '../../components/common/ErrorModal'; // Se tiver, descomente
+import ErrorModal from '../components/common/ErrorModal'; // Importado o ErrorModal
 import { FeiraService } from '../services/FeiraService'; 
-import { AuthContext } from '../context/AuthContext'; // <--- 1. Import do Contexto
+import { ExpositorService } from '../services/ExpositorService'; // Importado ExpositorService
+import { AuthContext } from '../context/AuthContext'; 
 
 const GestaoFeiras = () => {
-  const { user } = useContext(AuthContext); // <--- 2. Pega o usuário logado
+  const { user } = useContext(AuthContext); 
   
   const [feiras, setFeiras] = useState([]);
+  // NOVO ESTADO: Lista de todos os expositores para o formulário
+  const [expositores, setExpositores] = useState([]); 
+  
   const [termoBusca, setTermoBusca] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingExpositores, setLoadingExpositores] = useState(false); // NOVO ESTADO DE LOADING
   
   // Modais
   const [showFormModal, setShowFormModal] = useState(false);
@@ -23,6 +28,20 @@ const GestaoFeiras = () => {
   const [mensagemModal, setMensagemModal] = useState('');
 
   // --- Carregar Dados do Backend ---
+  
+  // Funcao para carregar todos os expositores
+  const carregarExpositores = async () => {
+      setLoadingExpositores(true);
+      try {
+          const dados = await ExpositorService.listarTodos(); 
+          setExpositores(dados);
+      } catch (error) {
+          console.error("Erro ao carregar expositores:", error);
+      } finally {
+          setLoadingExpositores(false);
+      }
+  }
+
   const carregarFeiras = async () => {
     setLoading(true);
     try {
@@ -38,6 +57,7 @@ const GestaoFeiras = () => {
 
   useEffect(() => {
     carregarFeiras();
+    carregarExpositores(); // Carrega expositores na montagem
   }, []);
 
   // --- Handlers ---
@@ -157,6 +177,7 @@ const GestaoFeiras = () => {
                 <tr>
                   <th className="ps-4">Nome</th>
                   <th>Local</th>
+                  <th>Total Espaços</th> 
                   <th>Tipo / Detalhes</th>
                   <th>Horário</th>
                   <th>Ações</th>
@@ -170,6 +191,9 @@ const GestaoFeiras = () => {
                     <tr key={`${feira.tipo}-${feira.id}`}>
                       <td className="ps-4 fw-bold text-dark">{feira.nome}</td>
                       <td>{feira.local}</td>
+                      <td>
+                          <span className="badge bg-secondary">{feira.espacos}</span> 
+                      </td>
                       <td>{renderDetalhesData(feira)}</td>
                       <td>
                         <i className="bi bi-clock me-1 text-muted"></i>
@@ -202,6 +226,8 @@ const GestaoFeiras = () => {
         handleClose={() => setShowFormModal(false)}
         handleSave={handleSalvar}
         feiraParaEditar={feiraSelecionada}
+        expositoresDisponiveis={expositores} // PASSA A LISTA DE EXPOSITORES
+        loadingExpositores={loadingExpositores} // PASSA O ESTADO DE LOADING
       />
 
       <ConfirmationModal
