@@ -134,9 +134,8 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
                                     required
                                 >
                                     {/* Os values devem corresponder aos nomes do Enum StatusExpositor em Java */}
-                                    <option value="PENDENTE">PENDENTE</option>
-                                    <option value="APROVADO">APROVADO</option>
-                                    <option value="REJEITADO">REJEITADO</option>
+                                    <option value="INATIVO">INATIVO</option>
+                                    <option value="ATIVO">ATIVO</option>
                                 </Form.Select>
                             </Form.Group>
                         </div>
