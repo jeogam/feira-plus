@@ -1,20 +1,50 @@
 .home-layout {
   margin-left: 260px;
   width: calc(100% - 260px);
-  
+
   /* Garante altura mínima da tela inteira */
-  min-height: 100vh; 
-  
+  min-height: 100vh;
+
   /* Cor de fundo do sistema */
-  background-color: #f5f6fa; 
-  
+  background-color: #f5f6fa;
+
   /* Espaçamento interno (topo e lados) */
   padding-top: 40px;
   padding-left: 60px;
   padding-right: 60px;
-  /* Removemos o padding-bottom daqui pois o Footer já tem margem */
-  
+  padding-bottom: 20px; /* Espaço para o footer */
+
+  /* Permite scroll se necessário */
+  overflow-y: auto;
+  overflow-x: hidden; /* Evita rolagem horizontal */
+
   transition: all 0.3s ease;
+}
+
+/* Barra de rolagem customizada para o layout principal */
+.home-layout::-webkit-scrollbar {
+  width: 10px;
+}
+
+.home-layout::-webkit-scrollbar-track {
+  background: #f5f6fa;
+  border-radius: 5px;
+}
+
+.home-layout::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 5px;
+  border: 2px solid #f5f6fa;
+}
+
+.home-layout::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Para Firefox */
+.home-layout {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f5f6fa;
 }
 
 /* Responsividade Mobile */
