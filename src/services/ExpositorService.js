@@ -1,10 +1,9 @@
-import api from './api'; 
+import api from "./api";
 
 export const ExpositorService = {
-
   listarTodos: async () => {
-    const response = await api.get('/expositores/buscar-todos');
-    return response; 
+    const response = await api.get("/expositores/buscar-todos");
+    return response;
   },
 
   salvar: async (dadosExpositor, usuarioId) => {
@@ -15,10 +14,11 @@ export const ExpositorService = {
       categoriaId: dadosExpositor.categoriaId,
       descricao: dadosExpositor.descricao,
       tipoProduto: dadosExpositor.tipoProduto,
+      foto: dadosExpositor.foto || null, // ✅ NOVO
       usuarioId: usuarioId,
     };
 
-    const response = await api.post('/expositores/register', payload);
+    const response = await api.post("/expositores/register", payload);
     return response;
   },
 
@@ -30,6 +30,7 @@ export const ExpositorService = {
       categoriaId: dadosExpositor.categoriaId,
       descricao: dadosExpositor.descricao,
       tipoProduto: dadosExpositor.tipoProduto,
+      foto: dadosExpositor.foto || null, // ✅ NOVO
       usuarioId: usuarioId,
     };
 
@@ -41,9 +42,9 @@ export const ExpositorService = {
     await api.delete(`/expositores/delete/${id}`);
     return true;
   },
-  
+
   findById: async (id) => {
     const response = await api.get(`/expositores/${id}`);
     return response;
-  }
+  },
 };

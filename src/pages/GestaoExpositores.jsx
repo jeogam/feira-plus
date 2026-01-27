@@ -12,6 +12,8 @@ import api from "../services/api"; // Importando api para buscar categorias
 // Contexto de Autenticação para obter dados do usuário logado
 import { AuthContext } from "../context/AuthContext";
 
+const PLACEHOLDER_IMG = "https://via.placeholder.com/80?text=Foto";
+
 const GestaoExpositores = () => {
   // Obtém o objeto 'user' do contexto de autenticação
   const { user } = useContext(AuthContext);
@@ -188,7 +190,8 @@ const GestaoExpositores = () => {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
-                  <th className="ps-4">Nome</th>
+                  <th className="ps-4">Foto</th>
+                  <th>Nome</th>
                   <th>Documentação</th>
                   <th>Status</th>
                   <th>Categoria</th>
@@ -197,26 +200,45 @@ const GestaoExpositores = () => {
                   <th className="text-end pe-4">Ações</th>
                 </tr>
               </thead>
+
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-4">
+                    <td colSpan="8" className="text-center py-4">
                       Carregando...
                     </td>
                   </tr>
                 ) : expositoresFiltrados.length > 0 ? (
                   expositoresFiltrados.map((expositor) => (
                     <tr key={expositor.id}>
-                      <td className="ps-4 fw-bold text-dark">
-                        {expositor.nome}
+                      <td className="ps-4">
+                        <img
+                          src={
+                            expositor.foto?.trim()
+                              ? expositor.foto.trim()
+                              : PLACEHOLDER_IMG
+                          }
+                          alt="Foto do expositor"
+                          className="rounded-circle"
+                          style={{ width: 40, height: 40, objectFit: "cover" }}
+                          onError={(e) => {
+                            e.currentTarget.src = PLACEHOLDER_IMG;
+                          }}
+                        />
                       </td>
+
+                      <td className="fw-bold text-dark">{expositor.nome}</td>
                       <td>{expositor.documentacao}</td>
 
                       <td>
                         <span
-                          className={`badge ${expositor.status === "ATIVO" ? "bg-success" : "bg-secondary"}`}
+                          className={`badge ${
+                            expositor.status === "ATIVO"
+                              ? "bg-success"
+                              : "bg-secondary"
+                          }`}
                         >
-                          {expositor.status === 'ATIVO' ? 'Ativo' : 'Inativo'}
+                          {expositor.status === "ATIVO" ? "Ativo" : "Inativo"}
                         </span>
                       </td>
 
@@ -251,7 +273,7 @@ const GestaoExpositores = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="text-center py-4 text-muted">
+                    <td colSpan="8" className="text-center py-4 text-muted">
                       Nenhum expositor encontrado.
                     </td>
                   </tr>
