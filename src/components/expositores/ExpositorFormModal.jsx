@@ -6,8 +6,10 @@ import { Modal, Form, Button } from 'react-bootstrap';
 const initialFormData = {
     nome: '',
     documentacao: '', 
-    status: 'ATIVO', // Valor padrão para novos cadastros
-    categoriaId: ''     // 
+    status: 'ATIVO', 
+    categoriaId: '',
+    tipoProduto: '',
+    descricao: ''     
 };
 
 /**
@@ -31,8 +33,9 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
                 nome: expositorParaEditar.nome || '', 
                 documentacao: expositorParaEditar.documentacao || '',
                 status: expositorParaEditar.status || 'ATIVO',
-                // Pega o ID da categoria do DTO de GET (que você já ajustou)
-                categoriaId: expositorParaEditar.categoriaId || ''
+                categoriaId: expositorParaEditar.categoriaId || '',
+                tipoProduto: expositorParaEditar.tipoProduto || '',
+                descricao: expositorParaEditar.descricao || ''
             });
         } else {
             // Reseta para o estado inicial ao abrir para novo cadastro
@@ -55,6 +58,15 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
             return;
         }
 
+        if (!formData.tipoProduto?.trim()){
+            alert("Por favor, preencha o campo Tipo de Produto.");
+            return;
+        }
+
+        if (!formData.descricao?.trim()){
+            alert("Por favor, preencha o campo de Descrição.");
+            return;
+        }
         // Chama a função de salvamento do componente pai, passando todos os dados
         handleSave(formData);
     };
@@ -93,6 +105,33 @@ const ExpositorFormModal = ({ show, handleClose, handleSave, expositorParaEditar
                             onChange={handleChange} 
                             required 
                             placeholder="000.000.000-00"
+                        />
+                    </Form.Group>
+
+                    {/*Tipo produto*/}
+                    <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Tipo de Produto *</Form.Label>
+                        <Form.Control 
+                            type="text" 
+                            name="tipoProduto"
+                            value={formData.tipoProduto} 
+                            onChange={handleChange} 
+                            required 
+                            placeholder="Ex: Alimentos, Artesanato em madeira, doces, roupas..."
+                        />
+                    </Form.Group>
+
+                    {/*Descrição*/}
+                    <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Descrição *</Form.Label>
+                        <Form.Control 
+                            as="textarea"
+                            rows={3}
+                            name="descricao"
+                            value={formData.descricao} 
+                            onChange={handleChange} 
+                            required 
+                            placeholder="Descreva o expositor..."
                         />
                     </Form.Group>
 
