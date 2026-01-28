@@ -4,7 +4,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Sidebar from "./components/Sidebar";
 import HomeLayout from "./components/HomeLayout";
-import Dashboard from "./pages/Home/Dashboard";
+  import Dashboard from "./pages/Home/Dashboard";
 import GestaoFeiras from "./pages/GestaoFeiras"; 
 import Relatorios from "./pages/Relatorios"; 
 import GestaoExpositores from "./pages/GestaoExpositores"; 
@@ -67,6 +67,8 @@ function App() {
       />
 
       <HomeLayout>
+        {currentPage === "dashboard" && <Dashboard />}
+
         {currentPage === "feiras" && <GestaoFeiras />}
 
         {currentPage === "relatorios" && <Relatorios />}
