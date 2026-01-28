@@ -1,10 +1,10 @@
-// src/pages/GestaoExpositores.js
-
 import React, { useState, useEffect, useContext } from "react";
 import ExpositorFormModal from "../components/expositores/ExpositorFormModal";
 import ConfirmationModal from "../components/common/ConfirmationModal";
 import SuccessModal from "../components/common/SuccessModal";
-import ErrorModal from "../components/common/ErrorModal"; // Importando o ErrorModal que você já tem
+import ErrorModal from "../components/common/ErrorModal";
+// ✅ IMPORTADO: Modal de Produtos
+import ProdutosModal from "../components/expositores/ProdutosModal";
 
 import { ExpositorService } from "../services/ExpositorService";
 import api from "../services/api"; // Importando api para buscar categorias
@@ -20,7 +20,7 @@ const GestaoExpositores = () => {
 
   // Estado para armazenar a lista de expositores
   const [expositores, setExpositores] = useState([]);
-  // Estado para armazenar a lista de categorias (NOVO)
+  // Estado para armazenar a lista de categorias
   const [categorias, setCategorias] = useState([]);
 
   // Estado para armazenar o termo usado na caixa de busca
@@ -33,6 +33,10 @@ const GestaoExpositores = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+
+  // ✅ NOVO: Estados para o Modal de Produtos
+  const [showProdutosModal, setShowProdutosModal] = useState(false);
+  const [expositorParaProdutos, setExpositorParaProdutos] = useState(null);
 
   // Estado para armazenar o expositor sendo editado ou excluído
   const [expositorSelecionado, setExpositorSelecionado] = useState(null);
@@ -55,13 +59,12 @@ const GestaoExpositores = () => {
     }
   };
 
-  // 2. Carregar Categorias (NOVO)
+  // 2. Carregar Categorias
   const carregarCategorias = async () => {
     try {
       const response = await api.get("/categorias/buscar");
       let dados;
 
-      // Lógica robusta igual fizemos na tela de Gestão de Categorias
       if (Array.isArray(response)) dados = response;
       else if (Array.isArray(response.data)) dados = response.data;
       else if (response.data && Array.isArray(response.data.content))
@@ -71,14 +74,13 @@ const GestaoExpositores = () => {
       setCategorias(dados);
     } catch (error) {
       console.error("Erro ao carregar categorias para o select:", error);
-      // Não bloqueamos a tela se falhar, apenas o select ficará vazio
     }
   };
 
   // Efeito colateral que executa na montagem
   useEffect(() => {
     carregarExpositores();
-    carregarCategorias(); // Busca as categorias também
+    carregarCategorias();
   }, []);
 
   // --- Funções de Manipulação da Interface e Dados ---
@@ -96,6 +98,12 @@ const GestaoExpositores = () => {
   const handleConfirmarExclusao = (expositor) => {
     setExpositorSelecionado(expositor);
     setShowDeleteModal(true);
+  };
+
+  // ✅ NOVO: Handler para abrir o modal de produtos
+  const handleGerenciarProdutos = (expositor) => {
+    setExpositorParaProdutos(expositor);
+    setShowProdutosModal(true);
   };
 
   const handleSalvar = async (dadosExpositor) => {
@@ -150,7 +158,7 @@ const GestaoExpositores = () => {
   const expositoresFiltrados = expositores.filter(
     (expositor) =>
       expositor.nome?.toLowerCase().includes(termoBusca.toLowerCase()) ||
-      expositor.documentacao?.includes(termoBusca), // Atualizado para usar documentacao
+      expositor.documentacao?.includes(termoBusca),
   );
 
   return (
@@ -256,14 +264,25 @@ const GestaoExpositores = () => {
                       </td>
 
                       <td className="text-end pe-4">
+                        {/* ✅ BOTÃO DE PRODUTOS */}
+                        <button
+                          className="btn btn-sm btn-outline-info me-2"
+                          title="Gerenciar Produtos"
+                          onClick={() => handleGerenciarProdutos(expositor)}
+                        >
+                          <i className="bi bi-box-seam"></i>
+                        </button>
+
                         <button
                           className="btn btn-sm btn-outline-primary me-2"
+                          title="Editar"
                           onClick={() => handleEditar(expositor)}
                         >
                           <i className="bi bi-pencil"></i>
                         </button>
                         <button
                           className="btn btn-sm btn-outline-danger"
+                          title="Excluir"
                           onClick={() => handleConfirmarExclusao(expositor)}
                         >
                           <i className="bi bi-trash"></i>
@@ -286,13 +305,20 @@ const GestaoExpositores = () => {
 
       {/* --- Modais --- */}
 
-      {/* Modal de Cadastro/Edição: Agora recebe as CATEGORIAS */}
+      {/* Modal de Cadastro/Edição */}
       <ExpositorFormModal
         show={showFormModal}
         handleClose={() => setShowFormModal(false)}
         handleSave={handleSalvar}
         expositorParaEditar={expositorSelecionado}
-        categorias={categorias} // <--- AQUI ESTÁ A CORREÇÃO PRINCIPAL
+        categorias={categorias}
+      />
+
+      {/* ✅ MODAL DE PRODUTOS (ADICIONADO) */}
+      <ProdutosModal
+        show={showProdutosModal}
+        handleClose={() => setShowProdutosModal(false)}
+        expositor={expositorParaProdutos}
       />
 
       <ConfirmationModal

@@ -1,11 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import MetricCard from '../../components/MetricCard';
-import { FeiraService } from '../../services/FeiraService';
-import { ExpositorService } from '../../services/ExpositorService';
-import { RelatorioService } from '../../services/RelatorioService';
-import { EspacoService } from '../../services/EspacoService';
-import './Dashboard.css';
+import React, { useState, useEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+} from "recharts";
+import MetricCard from "../../components/MetricCard";
+import { FeiraService } from "../../services/FeiraService";
+import { ExpositorService } from "../../services/ExpositorService";
+import { RelatorioService } from "../../services/RelatorioService";
+import { EspacoService } from "../../services/EspacoService";
+import "./Dashboard.css";
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState({
@@ -13,7 +27,7 @@ const Dashboard = () => {
     feirasProgramadas: 0,
     expositores: 0,
     espacosOcupados: 0,
-    taxaOcupacao: 0
+    taxaOcupacao: 0,
   });
   const [feirasData, setFeirasData] = useState([]);
   const [ocupacaoData, setOcupacaoData] = useState([]);
@@ -26,7 +40,7 @@ const Dashboard = () => {
         const [feiras, expositores, ocupacao] = await Promise.all([
           FeiraService.listarTodas(),
           ExpositorService.listarTodos(),
-          RelatorioService.getOcupacao()
+          RelatorioService.getOcupacao(),
         ]);
 
         const hoje = new Date();
@@ -34,71 +48,85 @@ const Dashboard = () => {
         amanha.setDate(hoje.getDate() + 1);
 
         // Feiras ativas (ativas ou sem data específica)
-        const feirasAtivas = feiras.filter(f => !f.dataFim || new Date(f.dataFim) >= hoje).length;
+        const feirasAtivas = feiras.filter(
+          (f) => !f.dataFim || new Date(f.dataFim) >= hoje,
+        ).length;
 
         // Feiras programadas (com data futura)
-        const feirasProgramadas = feiras.filter(f => f.dataInicio && new Date(f.dataInicio) > hoje).length;
+        const feirasProgramadas = feiras.filter(
+          (f) => f.dataInicio && new Date(f.dataInicio) > hoje,
+        ).length;
 
         // Espaços ocupados - vamos contar de algumas feiras ativas
         let espacosOcupados = 0;
         let totalEspacos = 0;
-        for (const feira of feiras.slice(0, 5)) { // Limitar para performance
+        for (const feira of feiras.slice(0, 5)) {
+          // Limitar para performance
           try {
             const espacos = await EspacoService.listarPorFeira(feira.id);
-            espacosOcupados += espacos.filter(e => e.status === 'OCUPADO').length;
+            espacosOcupados += espacos.filter(
+              (e) => e.status === "OCUPADO",
+            ).length;
             totalEspacos += espacos.length;
           } catch {
             // Ignorar erro se feira não tiver espaços
           }
         }
 
-        const taxaOcupacao = ocupacao.taxa || (totalEspacos > 0 ? Math.round((espacosOcupados / totalEspacos) * 100) : 0);
+        const taxaOcupacao =
+          ocupacao.taxa ||
+          (totalEspacos > 0
+            ? Math.round((espacosOcupados / totalEspacos) * 100)
+            : 0);
 
         setMetrics({
           feirasAtivas,
           feirasProgramadas,
           expositores: expositores.length,
           espacosOcupados,
-          taxaOcupacao: `${taxaOcupacao}%`
+          taxaOcupacao: `${taxaOcupacao}%`,
         });
 
         // Data for charts
-        const eventosCount = feiras.filter(f => f.tipo === 'EVENTO').length;
-        const permanentesCount = feiras.filter(f => f.tipo === 'PERMANENTE').length;
+        const eventosCount = feiras.filter((f) => f.tipo === "EVENTO").length;
+        const permanentesCount = feiras.filter(
+          (f) => f.tipo === "PERMANENTE",
+        ).length;
         setFeirasData([
-          { name: 'Eventos', value: eventosCount, color: '#8884d8' },
-          { name: 'Permanentes', value: permanentesCount, color: '#82ca9d' }
+          { name: "Eventos", value: eventosCount, color: "#8884d8" },
+          { name: "Permanentes", value: permanentesCount, color: "#82ca9d" },
         ]);
 
         // Ocupação por mês (simulado)
         setOcupacaoData([
-          { mes: 'Jan', ocupacao: 65 },
-          { mes: 'Fev', ocupacao: 70 },
-          { mes: 'Mar', ocupacao: 75 },
-          { mes: 'Abr', ocupacao: 80 },
-          { mes: 'Mai', ocupacao: taxaOcupacao },
+          { mes: "Jan", ocupacao: 65 },
+          { mes: "Fev", ocupacao: 70 },
+          { mes: "Mar", ocupacao: 75 },
+          { mes: "Abr", ocupacao: 80 },
+          { mes: "Mai", ocupacao: taxaOcupacao },
         ]);
 
         // Recent feiras (last 5)
-        const sortedFeiras = feiras.sort((a, b) => new Date(b.dataCriacao || 0) - new Date(a.dataCriacao || 0));
+        const sortedFeiras = feiras.sort(
+          (a, b) => new Date(b.dataCriacao || 0) - new Date(a.dataCriacao || 0),
+        );
         setRecentFeiras(sortedFeiras.slice(0, 5));
 
         // Próximos eventos (próximas 3 feiras)
         const proximos = feiras
-          .filter(f => f.dataInicio && new Date(f.dataInicio) > hoje)
+          .filter((f) => f.dataInicio && new Date(f.dataInicio) > hoje)
           .sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio))
           .slice(0, 3);
         setProximosEventos(proximos);
-
       } catch (error) {
-        console.error('Erro ao buscar métricas:', error);
+        console.error("Erro ao buscar métricas:", error);
       }
     };
 
     fetchMetrics();
   }, []);
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   return (
     <div className="dashboard-content">
@@ -196,9 +224,15 @@ const Dashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="mes" />
                   <YAxis domain={[0, 100]} />
-                  <Tooltip formatter={(value) => [`${value}%`, 'Ocupação']} />
+                  <Tooltip formatter={(value) => [`${value}%`, "Ocupação"]} />
                   <Legend />
-                  <Line type="monotone" dataKey="ocupacao" stroke="#82ca9d" strokeWidth={3} dot={{ r: 6 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="ocupacao"
+                    stroke="#82ca9d"
+                    strokeWidth={3}
+                    dot={{ r: 6 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -220,15 +254,25 @@ const Dashboard = () => {
               {proximosEventos.length > 0 ? (
                 <div className="list-group list-group-flush">
                   {proximosEventos.map((feira, index) => (
-                    <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                    <div
+                      key={index}
+                      className="list-group-item d-flex justify-content-between align-items-center"
+                    >
                       <div>
                         <h6 className="mb-1">{feira.nome}</h6>
                         <small className="text-muted">
-                          {new Date(feira.dataInicio).toLocaleDateString('pt-BR')} - {feira.tipo}
+                          {new Date(feira.dataInicio).toLocaleDateString(
+                            "pt-BR",
+                          )}{" "}
+                          - {feira.tipo}
                         </small>
                       </div>
                       <span className="badge bg-primary rounded-pill">
-                        {Math.ceil((new Date(feira.dataInicio) - new Date()) / (1000 * 60 * 60 * 24))} dias
+                        {Math.ceil(
+                          (new Date(feira.dataInicio) - new Date()) /
+                            (1000 * 60 * 60 * 24),
+                        )}{" "}
+                        dias
                       </span>
                     </div>
                   ))}
@@ -263,12 +307,18 @@ const Dashboard = () => {
                       <tr key={index}>
                         <td className="fw-semibold">{feira.nome}</td>
                         <td>
-                          <span className={`badge ${feira.tipo === 'EVENTO' ? 'bg-primary' : 'bg-success'}`}>
+                          <span
+                            className={`badge ${feira.tipo === "EVENTO" ? "bg-primary" : "bg-success"}`}
+                          >
                             {feira.tipo}
                           </span>
                         </td>
                         <td className="text-muted">
-                          {feira.dataCriacao ? new Date(feira.dataCriacao).toLocaleDateString('pt-BR') : 'N/A'}
+                          {feira.dataInicio
+                            ? new Date(feira.dataInicio).toLocaleDateString(
+                                "pt-BR",
+                              )
+                            : "N/A"}
                         </td>
                       </tr>
                     ))}

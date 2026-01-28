@@ -14,7 +14,7 @@ export const ExpositorService = {
       categoriaId: dadosExpositor.categoriaId,
       descricao: dadosExpositor.descricao,
       tipoProduto: dadosExpositor.tipoProduto,
-      foto: dadosExpositor.foto || null, // ✅ NOVO
+      foto: dadosExpositor.foto || null, 
       usuarioId: usuarioId,
     };
 

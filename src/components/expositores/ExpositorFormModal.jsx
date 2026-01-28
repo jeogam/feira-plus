@@ -127,18 +127,7 @@ const ExpositorFormModal = ({
             </Form.Text>
           </Form.Group>
 
-          {/* Tipo produto */}
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-semibold">Tipo de Produto *</Form.Label>
-            <Form.Control
-              type="text"
-              name="tipoProduto"
-              value={formData.tipoProduto}
-              onChange={handleChange}
-              required
-              placeholder="Ex: Alimentos, Artesanato..."
-            />
-          </Form.Group>
+
 
           {/* Descrição */}
           <Form.Group className="mb-3">
