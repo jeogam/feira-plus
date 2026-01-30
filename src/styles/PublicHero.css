@@ -1,0 +1,83 @@
+/* src/components/public/PublicHero.css */
+
+/* --- SEÇÃO PRINCIPAL --- */
+.hero-section {
+  background-color: #ffffff;
+  border-bottom: 1px solid #eef2f6;
+  position: relative;
+}
+
+.hero-title {
+  color: #1e2939;
+}
+
+/* --- BARRA DE PESQUISA --- */
+.hero-search-input {
+  height: 50px;
+  background-color: #f8f9fa;
+  color: #1e2939;
+}
+
+.hero-search-btn {
+  height: 45px;
+  background-color: #1e2939;
+  border-color: #1e2939;
+  transition: all 0.3s ease;
+}
+
+.hero-search-btn:hover {
+  background-color: #2c3e50;
+  border-color: #2c3e50;
+  transform: translateY(-2px);
+}
+
+/* --- CONTAINER DA IMAGEM --- */
+.hero-image-container {
+  position: relative;
+  width: 100%;
+  /* Define uma altura mínima para evitar que a tela "pule" enquanto a imagem carrega */
+  min-height: 450px; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+/* --- IMAGEM ORGÂNICA (BLOB) --- */
+.hero-image-blob {
+  z-index: 2;
+  object-fit: cover;
+  width: 100%;
+  max-width: 500px;
+  height: 450px;
+  
+  /* O Formato "Blob" (Batata) */
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  
+  /* Transição suave para a opacidade (Fade) e para a forma */
+  transition: opacity 0.5s ease-in-out, border-radius 1s ease;
+}
+
+/* Efeito extra: muda levemente a forma ao passar o rato */
+.hero-image-blob:hover {
+  border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%;
+}
+
+/* --- CLASSES DE ANIMAÇÃO (FADE) --- */
+.hero-image-blob.fade-in {
+  opacity: 1;
+}
+
+.hero-image-blob.fade-out {
+  opacity: 0;
+}
+
+/* --- AJUSTES PARA DESKTOP (Telas Grandes) --- */
+@media (min-width: 992px) {
+  .hero-image-container {
+    /* No desktop, alinha a imagem à direita para equilibrar com o texto */
+    justify-content: flex-end;
+  }
+}

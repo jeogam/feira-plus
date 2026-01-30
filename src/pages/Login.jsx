@@ -45,10 +45,8 @@ function Login({ onLogin, onSwitchToRegister }) {
         message: "Login realizado com sucesso! Entrando...",
       });
 
-    
-
       setTimeout(() => {
-          login(data.token, dadosUsuario);
+        login(data.token, dadosUsuario);
         if (onLogin) {
           onLogin();
         }
@@ -132,22 +130,6 @@ function Login({ onLogin, onSwitchToRegister }) {
                 }}
               >
                 Esqueceu a senha?
-              </a>
-            </div>
-
-            {/* 2. ALTERAÇÃO AQUI: Novo bloco de "Registrar Agora" */}
-            <div className="text-center mt-4 pt-3 border-top">
-              <span className="text-muted me-2">Ainda não tem conta?</span>
-              <a
-                href="#"
-                className="custom-link fw-bold"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Chama a função passada pelo App.js para trocar a tela
-                  if (onSwitchToRegister) onSwitchToRegister();
-                }}
-              >
-                Registrar Agora
               </a>
             </div>
           </form>

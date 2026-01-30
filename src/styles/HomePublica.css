@@ -1,0 +1,51 @@
+/* src/pages/HomePublica.css */
+
+:root {
+  --brand-color: #1e2939;
+  --bg-contrast: #f4f6f8; /* Cinza azulado suave para contraste */
+}
+
+/* --- MUDANÇA 1: Fundo da Seção Principal --- */
+.bg-contrast {
+  background-color: var(--bg-contrast) !important;
+}
+
+.navbar-brand {
+  letter-spacing: -0.5px;
+}
+
+/* --- MUDANÇA 2: Cards com Borda Definida --- */
+.card-hover {
+  background-color: #ffffff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  /* Borda sutil para separar o card do fundo */
+  border: 1px solid #e2e8f0; 
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  /* Sombra mais forte no hover */
+  box-shadow: 0 15px 30px rgba(30, 41, 57, 0.12) !important;
+  border-color: #cbd5e1; /* Borda fica um pouco mais escura no hover */
+}
+
+/* Toolbar (Botões de Filtro) */
+.btn-light.border {
+  background-color: #ffffff;
+  border-color: #e2e8f0 !important;
+}
+
+/* Scrollbar */
+div[style*="overflow-y: auto"]::-webkit-scrollbar {
+  width: 8px;
+}
+div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
+  background: #fff;
+}
+div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}

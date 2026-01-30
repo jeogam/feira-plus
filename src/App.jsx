@@ -1,58 +1,30 @@
 import { useState, useContext } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"; 
 
 import Register from "./pages/Register"; 
 import Login from "./pages/Login";
 import Sidebar from "./components/Sidebar";
 import HomeLayout from "./components/HomeLayout";
-  import Dashboard from "./pages/Home/Dashboard";
+import Dashboard from "./pages/Home/Dashboard";
 import GestaoFeiras from "./pages/GestaoFeiras"; 
 import Relatorios from "./pages/Relatorios"; 
 import GestaoExpositores from "./pages/GestaoExpositores"; 
-
-import { AuthContext } from "./context/AuthContext";
-import "./styles/App.css";
 import GestaoUsuarios from "./pages/GestaoUsuarios";
 import GestaoCategorias from "./pages/GestaoCategorias";
+import HomePublica from "./pages/HomePublica"; 
+import { AuthContext } from "./context/AuthContext";
+import "./styles/App.css";
 
-function App() {
-  const { user, logout, loading } = useContext(AuthContext);
-
-  // Controle simples da página interna (Dashboard, Feiras, etc.)
+// --- COMPONENTE INTERNO: ÁREA ADMINISTRATIVA (LOGADA) ---
+// Extraí isso para limpar as Rotas principais
+const AdminArea = () => {
+  const { user, logout } = useContext(AuthContext);
   const [currentPage, setCurrentPage] = useState("dashboard");
 
-  // NOVO ESTADO: Controle para alternar entre Login e Cadastro
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  // Tela de carregamento
-  if (loading) {
-    return <div className="loading-screen">Carregando...</div>;
-  }
-
-  // --- LÓGICA DE AUTENTICAÇÃO ---
-  // Se NÃO estiver logado, decide se mostra Login ou Register
-  if (!user) {
-    if (isRegistering) {
-      // Mostra a tela de Registro e passa a função para voltar ao Login
-      return <Register onSwitchToLogin={() => setIsRegistering(false)} />;
-    } else {
-      // Mostra a tela de Login e passa a função para ir ao Registro
-      return (
-        <Login 
-          onLogin={() => {}} // O contexto atualiza o user, o redirecionamento é automático
-          onSwitchToRegister={() => setIsRegistering(true)} 
-        />
-      );
-    }
-  }
-
-  // --- ÁREA LOGADA (DASHBOARD) ---
-  
-  // Navegação da sidebar
   const handleNavigate = (pageId) => {
     if (pageId === "sair") {
       logout();
-      setIsRegistering(false); // Reseta para login ao sair
-      return;
+      return; // O AuthContext limpa o user e o Router redireciona pra Home
     }
     setCurrentPage(pageId);
   };
@@ -62,29 +34,76 @@ function App() {
       <Sidebar
         activePage={currentPage}
         onNavigate={handleNavigate}
-        userName={user.nome}
-        userRole={user.perfilUsuario || "Usuário"}
+        userName={user?.nome || "Usuário"}
+        userRole={user?.perfilUsuario || "Usuário"}
       />
-
       <HomeLayout>
         {currentPage === "dashboard" && <Dashboard />}
-
         {currentPage === "feiras" && <GestaoFeiras />}
-
         {currentPage === "relatorios" && <Relatorios />}
-
         {currentPage === "expositores" && <GestaoExpositores />}
-
         {currentPage === "usuarios" && <GestaoUsuarios />}
-
         {currentPage === "categorias" && <GestaoCategorias />}
-
-
-        {currentPage === "configuracoes" && (
-          <div style={{ padding: "20px" }}>Configurações (Em construção)</div>
-        )}
       </HomeLayout>
     </div>
+  );
+};
+
+// --- COMPONENTE INTERNO: ROTA PROTEGIDA ---
+// Só deixa acessar se tiver usuário, senão manda pro Login
+const RotaProtegida = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) return <div className="loading-screen">Carregando...</div>;
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+// --- COMPONENTE PRINCIPAL APP ---
+function App() {
+  const { user } = useContext(AuthContext);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        
+        {/* ROTA 1: HOME PÚBLICA (Endereço: /) */}
+        <Route 
+          path="/" 
+          element={ user ? <Navigate to="/painel" /> : <HomePublica /> } 
+        />
+
+        {/* ROTA 2: LOGIN (Endereço: /login) */}
+        <Route 
+          path="/login" 
+          element={ user ? <Navigate to="/painel" /> : <Login /> } 
+        />
+
+        {/* ROTA 3: REGISTRO (Endereço: /register) */}
+        <Route 
+          path="/register" 
+          element={ user ? <Navigate to="/painel" /> : <Register /> } 
+        />
+
+        {/* ROTA 4: ÁREA DO SISTEMA (Endereço: /painel) */}
+        <Route 
+          path="/painel" 
+          element={
+            <RotaProtegida>
+              <AdminArea />
+            </RotaProtegida>
+          } 
+        />
+
+        {/* ROTA CORINGA: Qualquer erro volta pra Home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
+      </Routes>
+    </BrowserRouter>
   );
 }
 
