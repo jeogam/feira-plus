@@ -13,8 +13,9 @@ export const ExpositorService = {
       status: dadosExpositor.status,
       categoriaId: dadosExpositor.categoriaId,
       descricao: dadosExpositor.descricao,
-      tipoProduto: dadosExpositor.tipoProduto,
-      foto: dadosExpositor.foto || null, 
+      tipoProduto: dadosExpositor.tipoProduto || "Geral", // Fallback caso venha vazio
+      foto: dadosExpositor.foto || null,
+      nota: dadosExpositor.nota || 0, // ✅ ADICIONADO: Envia a nota (padrão 0)
       usuarioId: usuarioId,
     };
 
@@ -30,7 +31,8 @@ export const ExpositorService = {
       categoriaId: dadosExpositor.categoriaId,
       descricao: dadosExpositor.descricao,
       tipoProduto: dadosExpositor.tipoProduto,
-      foto: dadosExpositor.foto || null, // ✅ NOVO
+      foto: dadosExpositor.foto || null,
+      nota: dadosExpositor.nota || 0, // ✅ ADICIONADO
       usuarioId: usuarioId,
     };
 

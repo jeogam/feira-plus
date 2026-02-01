@@ -31,7 +31,8 @@ export const FeiraService = {
 
     const dadosParaEnvio = {
       ...dadosOriginais,
-      foto: dadosOriginais.foto || null, // ✅ NOVO (explícito)
+      foto: dadosOriginais.foto || null,
+      nota: dadosOriginais.nota || 0,  houver nota
       usuarioId: usuarioIdLogado,
 
       horaAbertura:

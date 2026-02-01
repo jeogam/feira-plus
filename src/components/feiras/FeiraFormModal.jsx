@@ -31,13 +31,13 @@ const FeiraFormModal = ({
     dataInicio: "",
     dataFim: "",
     frequencia: "SEMANAL",
-    foto: "", // ✅ NOVO
+    foto: "",
     expositorIds: [],
+    nota: 0, // ✅ NOVO: Estado inicial da nota
   };
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // ✅ agora pode calcular o previewSrc (formData já existe)
   const previewSrc = formData.foto?.trim()
     ? formData.foto.trim()
     : PLACEHOLDER_IMG;
@@ -56,6 +56,7 @@ const FeiraFormModal = ({
         espacos: Number(feiraParaEditar.espacos || 0),
         foto: feiraParaEditar.foto || "", 
         expositorIds: idsAtuais,
+        nota: feiraParaEditar.nota || 0, // ✅ Carrega a nota existente
       });
     } else {
       setFormData(initialFormState);
@@ -66,16 +67,19 @@ const FeiraFormModal = ({
     const { name, value } = e.target;
 
     if (name === "expositorIds") {
-      // Lógica para Multi-Select: extrai todos os valores selecionados como array de IDs (Number)
       const selectedOptions = Array.from(e.target.options)
         .filter((option) => option.selected)
         .map((option) => Number(option.value));
       setFormData((prev) => ({ ...prev, [name]: selectedOptions }));
     } else {
-      // Para outros campos
       const finalValue = name === "espacos" ? Number(value) : value;
       setFormData((prev) => ({ ...prev, [name]: finalValue }));
     }
+  };
+
+  // ✅ Função para clicar na estrela e definir a nota
+  const handleStarClick = (valor) => {
+    setFormData((prev) => ({ ...prev, nota: valor }));
   };
 
   const handleSubmit = (e) => {
@@ -83,7 +87,6 @@ const FeiraFormModal = ({
 
     const dadosFinais = { ...formData };
 
-    // Limpeza de campos específicos que não se aplicam ao tipo
     if (formData.tipo === "EVENTO") {
       delete dadosFinais.frequencia;
     } else {
@@ -91,7 +94,6 @@ const FeiraFormModal = ({
       delete dadosFinais.dataFim;
     }
 
-    // Envia o DTO completo (que inclui 'expositorIds') para o componente pai
     handleSave(dadosFinais);
   };
 
@@ -103,8 +105,6 @@ const FeiraFormModal = ({
       style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}
     >
       <div className="modal-dialog modal-dialog-centered modal-xl">
-        {" "}
-        {/* Aumentado para XL */}
         <div className="modal-content custom-modal-content">
           <div className="modal-header border-0">
             <h5
@@ -122,7 +122,6 @@ const FeiraFormModal = ({
 
           <div className="modal-body">
             <form onSubmit={handleSubmit}>
-              {/* Seleção do Tipo de Feira (Apenas na criação) */}
               {!feiraParaEditar && (
                 <div className="mb-4 p-3 bg-light rounded border">
                   <label className="form-label fw-bold d-block">
@@ -189,7 +188,7 @@ const FeiraFormModal = ({
               </div>
 
               <div className="row">
-                <div className="col-md-12 mb-3">
+                <div className="col-md-8 mb-3">
                   <label className="form-label fw-bold">URL da Foto</label>
                   <div className="d-flex gap-3 align-items-center">
                     <img
@@ -209,6 +208,24 @@ const FeiraFormModal = ({
                       onChange={handleChange}
                       placeholder="https://... (ou base64)"
                     />
+                  </div>
+                </div>
+
+                {/* ✅ CAMPO DE AVALIAÇÃO (ESTRELAS) */}
+                <div className="col-md-4 mb-3">
+                  <label className="form-label fw-bold">Avaliação (1-5)</label>
+                  <div className="d-flex align-items-center gap-1 fs-4" style={{ cursor: 'pointer' }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <i
+                        key={star}
+                        className={`fas fa-star ${star <= formData.nota ? 'text-warning' : 'text-muted opacity-25'}`}
+                        onClick={() => handleStarClick(star)}
+                        title={`Avaliar com ${star} estrela(s)`}
+                      ></i>
+                    ))}
+                    <span className="ms-2 fs-6 text-muted">
+                        ({Number(formData.nota).toFixed(1)})
+                    </span>
                   </div>
                 </div>
               </div>
@@ -250,7 +267,6 @@ const FeiraFormModal = ({
                 </div>
               </div>
 
-              {/* DADOS ESPECÍFICOS (EVENTO/PERMANENTE) */}
               <hr />
               <div className="row">
                 <div className="col-md-6">
@@ -305,7 +321,6 @@ const FeiraFormModal = ({
                   )}
                 </div>
 
-                {/* SELEÇÃO DE EXPOSITORES (NOVA SEÇÃO na mesma linha, para telas maiores) */}
                 <div className="col-md-6">
                   <h6 className="text-muted mb-3">Expositores Participantes</h6>
                   <div className="col-12 mb-3">
@@ -322,10 +337,10 @@ const FeiraFormModal = ({
                         name="expositorIds"
                         className="form-select custom-input"
                         multiple
-                        value={formData.expositorIds.map(String)} // Mapeia para string para o select funcionar com números
+                        value={formData.expositorIds.map(String)}
                         onChange={handleChange}
-                        size="8" // Define o número de itens visíveis
-                        style={{ minHeight: "200px" }} // Altura mínima para melhor usabilidade
+                        size="8"
+                        style={{ minHeight: "200px" }}
                       >
                         {expositoresDisponiveis.map((exp) => (
                           <option key={exp.id} value={exp.id}>
@@ -342,7 +357,6 @@ const FeiraFormModal = ({
                 </div>
               </div>
 
-              {/* RODAPÉ E BOTÕES */}
               <div className="d-flex justify-content-end gap-2 mt-4">
                 <button
                   type="button"
