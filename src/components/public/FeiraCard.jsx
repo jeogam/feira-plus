@@ -14,6 +14,30 @@ const FeiraCard = ({ feira, onVerDetalhes }) => {
     return new Date(dataArray).toLocaleDateString();
   };
 
+  // ✅ Função para renderizar estrelas (somente leitura)
+  const renderEstrelas = (nota) => {
+    const estrelas = [];
+    const valor = nota || 0;
+    
+    for (let i = 1; i <= 5; i++) {
+      if (i <= valor) {
+        estrelas.push(<i key={i} className="fas fa-star text-warning small"></i>);
+      } else if (i - 0.5 <= valor) {
+        estrelas.push(<i key={i} className="fas fa-star-half-alt text-warning small"></i>);
+      } else {
+        estrelas.push(<i key={i} className="far fa-star text-muted opacity-25 small"></i>);
+      }
+    }
+    return (
+        <div className="mb-2" title={`Nota: ${valor.toFixed(1)}`}>
+            {estrelas} 
+            <small className="text-muted ms-1" style={{fontSize: '0.8rem'}}>
+                ({valor.toFixed(1)})
+            </small>
+        </div>
+    );
+  };
+
   return (
     <div className="col-12 col-md-6 col-lg-4">
       <div className="card h-100 shadow-sm border-0 card-hover">
@@ -38,7 +62,10 @@ const FeiraCard = ({ feira, onVerDetalhes }) => {
 
         {/* Corpo */}
         <div className="card-body d-flex flex-column">
-          <h5 className="card-title text-brand fw-bold">{feira.nome}</h5>
+          <h5 className="card-title text-brand fw-bold mb-1">{feira.nome}</h5>
+
+          {/* ✅ EXIBE AS ESTRELAS ABAIXO DO TÍTULO */}
+          {renderEstrelas(feira.nota)}
 
           <p className="card-text text-muted mb-2">
             <i className="bi bi-geo-alt-fill me-2 text-danger"></i>

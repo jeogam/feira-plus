@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ Importação para navegação
 import '../styles/Login.css'; 
 import '../styles/App.css';
 import api from "../services/api"; 
 import SuccessModal from '../components/common/SuccessModal';
 import ErrorModal from '../components/common/ErrorModal';
 
-function Register({ onSwitchToLogin }) {
+function Register() {
+  const navigate = useNavigate(); // ✅ Hook de navegação
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [perfil, setPerfil] = useState(''); 
+  // const [perfil, setPerfil] = useState(''); // ❌ REMOVIDO O STATE DE PERFIL
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
@@ -33,7 +35,7 @@ function Register({ onSwitchToLogin }) {
         nome,
         email,
         senha: password,
-        perfilUsuario: perfil 
+        perfilUsuario: 'USUARIO' // ✅ FIXADO COMO 'USUARIO' (remove a escolha)
       };
 
       await api.post("/usuarios/register", payload);
@@ -44,10 +46,10 @@ function Register({ onSwitchToLogin }) {
       });
 
       // Limpa form
-      setNome(''); setEmail(''); setPerfil(''); setPassword(''); setConfirmPassword('');
+      setNome(''); setEmail(''); setPassword(''); setConfirmPassword('');
 
       setTimeout(() => {
-        if (onSwitchToLogin) onSwitchToLogin();
+        navigate('/login'); // ✅ Redireciona para login usando rota
       }, 2000);
 
     } catch (err) {
@@ -59,10 +61,6 @@ function Register({ onSwitchToLogin }) {
 
   return (
     <div className="custom-login-container d-flex justify-content-center align-items-center">
-      
-      {/* MUDANÇA AQUI: Adicionei a classe 'custom-register-card' 
-          que definimos no CSS para deixar o card mais largo 
-      */}
       <div className="card custom-login-card custom-register-card">
         <div className="card-body p-4">
 
@@ -72,7 +70,7 @@ function Register({ onSwitchToLogin }) {
 
           <form onSubmit={handleSubmit}>
             
-            {/* LINHA 1: Nome e Email lado a lado */}
+            {/* LINHA 1: Nome e Email */}
             <div className="row">
                 <div className="col-md-6 mb-3">
                     <label htmlFor="nome" className="form-label fw-bold">Nome Completo</label>
@@ -101,23 +99,9 @@ function Register({ onSwitchToLogin }) {
                 </div>
             </div>
 
-            {/* LINHA 2: Perfil (Ocupando largura total ou metade, se preferir) */}
-            <div className="row">
-                <div className="col-12 mb-3">
-                    <label htmlFor="perfil" className="form-label fw-bold">Perfil</label>
-                    <input
-                        type="text"
-                        className="form-control form-control-lg custom-input"
-                        id="perfil"
-                        value={perfil}
-                        onChange={(e) => setPerfil(e.target.value)}
-                        required
-                        placeholder="Ex: ADMIN ou USUARIO"
-                    />
-                </div>
-            </div>
+            {/* ❌ LINHA 2: Perfil (REMOVIDO DO VISUAL) */}
 
-            {/* LINHA 3: Senhas lado a lado */}
+            {/* LINHA 3: Senhas */}
             <div className="row">
                 <div className="col-md-6 mb-3">
                     <label htmlFor="password" className="form-label fw-bold">Senha</label>
@@ -141,7 +125,7 @@ function Register({ onSwitchToLogin }) {
                 </div>
 
                 <div className="col-md-6 mb-4">
-                    <label htmlFor="confirmPassword" className="form-label fw-bold">Confirme sua Senha</label>
+                    <label htmlFor="confirmPassword" className="form-label fw-bold">Confirme a Senha</label>
                     <div className="input-group input-group-lg">
                         <input
                         type={showConfirmPassword ? 'text' : 'password'}
@@ -181,7 +165,7 @@ function Register({ onSwitchToLogin }) {
                 className="custom-link"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (onSwitchToLogin) onSwitchToLogin();
+                  navigate('/login'); // ✅ Navegação correta
                 }}
               >
                 Entrar

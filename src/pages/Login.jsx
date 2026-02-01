@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ Importação necessária
 
 import "../styles/Login.css";
 import "../styles/App.css";
@@ -10,8 +11,8 @@ import ForgotPasswordModal from "../components/Login/ForgotPasswordModal";
 import SuccessModal from "../components/common/SuccessModal";
 import ErrorModal from "../components/common/ErrorModal";
 
-// 1. ALTERAÇÃO AQUI: Adicionei 'onSwitchToRegister' nas props recebidas
-function Login({ onLogin, onSwitchToRegister }) {
+function Login({ onLogin }) {
+  const navigate = useNavigate(); // ✅ Hook de navegação
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -50,6 +51,7 @@ function Login({ onLogin, onSwitchToRegister }) {
         if (onLogin) {
           onLogin();
         }
+        // O AuthContext ou o App.jsx já redirecionam para /painel quando o user muda
       }, 1500);
     } catch (err) {
       console.error(err);
@@ -119,19 +121,32 @@ function Login({ onLogin, onSwitchToRegister }) {
               Entrar
             </button>
 
-            {/* Link "Esqueceu a senha?" */}
-            <div className="text-center mt-3">
-              <a
-                href="#"
-                className="custom-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowForgotModal(true);
-                }}
-              >
-                Esqueceu a senha?
-              </a>
+            {/* Links de Apoio */}
+            <div className="d-flex justify-content-between align-items-center mt-3">
+                <a
+                    href="#"
+                    className="custom-link small"
+                    onClick={(e) => {
+                    e.preventDefault();
+                    setShowForgotModal(true);
+                    }}
+                >
+                    Esqueceu a senha?
+                </a>
+
+                {/* ✅ Link para Registro */}
+                <a
+                    href="#"
+                    className="custom-link fw-bold"
+                    onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/register');
+                    }}
+                >
+                    Criar conta
+                </a>
             </div>
+
           </form>
         </div>
       </div>

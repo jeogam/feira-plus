@@ -15,8 +15,6 @@ import HomePublica from "./pages/HomePublica";
 import { AuthContext } from "./context/AuthContext";
 import "./styles/App.css";
 
-// --- COMPONENTE INTERNO: ÁREA ADMINISTRATIVA (LOGADA) ---
-// Extraí isso para limpar as Rotas principais
 const AdminArea = () => {
   const { user, logout } = useContext(AuthContext);
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -24,7 +22,7 @@ const AdminArea = () => {
   const handleNavigate = (pageId) => {
     if (pageId === "sair") {
       logout();
-      return; // O AuthContext limpa o user e o Router redireciona pra Home
+      return; 
     }
     setCurrentPage(pageId);
   };
@@ -49,8 +47,7 @@ const AdminArea = () => {
   );
 };
 
-// --- COMPONENTE INTERNO: ROTA PROTEGIDA ---
-// Só deixa acessar se tiver usuário, senão manda pro Login
+// ✅ CORREÇÃO NA ROTA PROTEGIDA
 const RotaProtegida = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
 
@@ -60,36 +57,41 @@ const RotaProtegida = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
+  // SE FOR USUÁRIO COMUM, NÃO DEIXA ENTRAR NO PAINEL -> MANDA PRA HOME
+  if (user.perfilUsuario === 'USUARIO') {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 };
 
-// --- COMPONENTE PRINCIPAL APP ---
 function App() {
   const { user } = useContext(AuthContext);
+
+  // Função auxiliar para redirecionar quem já está logado
+  const getRedirectPath = () => {
+    if (!user) return "/login";
+    // Admin vai pro painel, Usuário vai pra home
+    return user.perfilUsuario === 'ADMIN' ? "/painel" : "/";
+  };
 
   return (
     <BrowserRouter>
       <Routes>
         
-        {/* ROTA 1: HOME PÚBLICA (Endereço: /) */}
-        <Route 
-          path="/" 
-          element={ user ? <Navigate to="/painel" /> : <HomePublica /> } 
-        />
+        <Route path="/" element={<HomePublica />} />
 
-        {/* ROTA 2: LOGIN (Endereço: /login) */}
+        {/* ✅ LOGIC: Redireciona baseado no perfil se já estiver logado */}
         <Route 
           path="/login" 
-          element={ user ? <Navigate to="/painel" /> : <Login /> } 
+          element={ user ? <Navigate to={getRedirectPath()} /> : <Login /> } 
         />
 
-        {/* ROTA 3: REGISTRO (Endereço: /register) */}
         <Route 
           path="/register" 
-          element={ user ? <Navigate to="/painel" /> : <Register /> } 
+          element={ user ? <Navigate to={getRedirectPath()} /> : <Register /> } 
         />
 
-        {/* ROTA 4: ÁREA DO SISTEMA (Endereço: /painel) */}
         <Route 
           path="/painel" 
           element={
@@ -99,7 +101,6 @@ function App() {
           } 
         />
 
-        {/* ROTA CORINGA: Qualquer erro volta pra Home */}
         <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>

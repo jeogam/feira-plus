@@ -1,16 +1,18 @@
 import React, { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; useNavigate
 import { AuthContext } from "../context/AuthContext";
 import './Sidebar.css'; 
 
 const Sidebar = ({ activePage, onNavigate }) => {
   const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate(); 
   
-  // Estado para controlar se o menu está aberto no mobile
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
+    { id: 'home', label: 'Ir para Home', icon: 'fas fa-home' }, 
+    { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt' }, // (Caso tenha dashboard, é bom ter)
     { id: 'feiras', label: 'Gestão de Feiras', icon: 'fas fa-calendar-check' },
-    // --- NOVO ITEM ADICIONADO AQUI ---
     { id: 'categorias', label: 'Categorias', icon: 'fas fa-tags' }, 
     { id: 'relatorios', label: 'Relatórios', icon: 'fas fa-chart-pie' },
     { id: 'expositores', label: 'Expositores', icon: 'fas fa-store' },
@@ -22,16 +24,18 @@ const Sidebar = ({ activePage, onNavigate }) => {
   const handleClick = (id) => {
     if (id === "sair") {
       logout();
+    } else if (id === "home") { 
+      navigate('/'); 
     } else {
       onNavigate(id);
     }
-    // Fecha o menu automaticamente ao clicar em um item (no mobile)
+    
     setIsOpen(false);
   };
 
   return (
     <>
-      {/* --- BOTÃO HAMBÚRGUER (Só aparece no Mobile) --- */}
+      {/* --- BOTÃO HAMBÚRGUER --- */}
       <button 
         className="btn btn-dark d-md-none mobile-toggle-btn"
         onClick={() => setIsOpen(!isOpen)}
@@ -40,7 +44,7 @@ const Sidebar = ({ activePage, onNavigate }) => {
         <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'}`}></i>
       </button>
 
-      {/* --- OVERLAY (Fundo escuro ao abrir menu) --- */}
+      {/* --- OVERLAY --- */}
       {isOpen && (
         <div 
           className="sidebar-overlay d-md-none" 
@@ -54,10 +58,10 @@ const Sidebar = ({ activePage, onNavigate }) => {
         style={{ backgroundColor: '#2c3e50' }} 
       >
         {/* Cabeçalho */}
-        <div className="mb-4 text-center text-md-start mt-5 mt-md-0"> {/* margem top no mobile p/ não ficar baixo do botão */}
-          <a href="/" className="d-flex align-items-center mb-2 mb-md-0 text-white text-decoration-none justify-content-center justify-content-md-start">
+        <div className="mb-4 text-center text-md-start mt-5 mt-md-0">
+          <div className="d-flex align-items-center mb-2 mb-md-0 text-white text-decoration-none justify-content-center justify-content-md-start">
             <span className="fs-4 fw-bold">Feira+</span>
-          </a>
+          </div>
           <div className="text-center text-md-start">
              <small className="text-white-50 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
                 Módulo Admin
@@ -74,12 +78,12 @@ const Sidebar = ({ activePage, onNavigate }) => {
               <button
                 onClick={() => handleClick(item.id)}
                 className={`nav-link w-100 text-start d-flex align-items-center ${activePage === item.id ? 'active' : 'text-white'}`}
-                aria-current={activePage === item.id ? 'page' : undefined}
+                // Adiciona cor diferente para "Ir para Home" ou "Sair" se quiser destacar, opcional
+                style={item.id === 'home' ? { backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
               >
                 <div style={{ width: '24px' }} className="me-2 text-center">
                   <i className={`${item.icon}`}></i>
                 </div>
-                {/* No mobile, queremos mostrar o texto agora que é um menu deslizante */}
                 <span className="d-block">{item.label}</span>
               </button>
             </li>
