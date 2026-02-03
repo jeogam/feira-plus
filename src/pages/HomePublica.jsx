@@ -10,6 +10,7 @@ import PublicToolbar from "../components/public/PublicToolBar";
 import FeiraCard from "../components/public/FeiraCard";
 import FeiraModal from "../components/public/FeiraModal";
 import CallToAction from "../components/public/CallToAction";
+import ExpositorCtaModal from "../components/public/ExpositorCtaModal";
 
 const HomePublica = () => {
   const navigate = useNavigate(); 
@@ -20,6 +21,7 @@ const HomePublica = () => {
   const [feiraSelecionada, setFeiraSelecionada] = useState(null);
   const [termoBusca, setTermoBusca] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("TODOS");
+  const [showExpositorModal, setShowExpositorModal] = useState(false);
 
   useEffect(() => {
     carregarFeiras();
@@ -59,7 +61,7 @@ const HomePublica = () => {
   };
 
   const handleRegister = () => {
-    navigate("/register");
+    setShowExpositorModal(true);
   };
 
   return (
@@ -115,6 +117,7 @@ const HomePublica = () => {
       <Footer />
 
       <FeiraModal feira={feiraSelecionada} onClose={() => setFeiraSelecionada(null)} />
+      <ExpositorCtaModal show={showExpositorModal} handleClose={() => setShowExpositorModal(false)} />
     </div>
   );
 };

@@ -11,11 +11,12 @@ const Sidebar = ({ activePage, onNavigate }) => {
 
   const menuItems = [
     { id: 'home', label: 'Ir para Home', icon: 'fas fa-home' }, 
-    { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt' }, // (Caso tenha dashboard, é bom ter)
+    { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt' },
     { id: 'feiras', label: 'Gestão de Feiras', icon: 'fas fa-calendar-check' },
     { id: 'categorias', label: 'Categorias', icon: 'fas fa-tags' }, 
     { id: 'relatorios', label: 'Relatórios', icon: 'fas fa-chart-pie' },
     { id: 'expositores', label: 'Expositores', icon: 'fas fa-store' },
+    { id: 'mensagens', label: 'Mensagens', icon: 'fas fa-envelope' },
     { id: 'usuarios', label: 'Usuários', icon: 'fas fa-users-cog' },
     { id: 'configuracoes', label: 'Configurações', icon: 'fas fa-cog' },
     { id: 'sair', label: 'Sair', icon: 'fas fa-sign-out-alt' },

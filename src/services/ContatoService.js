@@ -23,7 +23,7 @@ export const ContatoService = {
    */
   listarMensagens: async () => {
     try {
-      const response = await api.get('/api/contato');
+      const response = await api.get('/contato');
       return response;
     } catch (error) {
       console.error('Erro ao listar mensagens:', error);
@@ -38,9 +38,18 @@ export const ContatoService = {
    */
   marcarComoLida: async (id) => {
     try {
-      await api.patch(`/api/contato/${id}/lida`);
+      await api.patch(`/contato/${id}/lida`);
     } catch (error) {
       console.error('Erro ao marcar mensagem como lida:', error);
+      throw error;
+    }
+  },
+
+  marcarComoNaoLida: async (id) => {
+    try {
+      await api.patch(`/contato/${id}/nao-lida`);
+    } catch (error) {
+      console.error('Erro ao marcar mensagem como não lida:', error);
       throw error;
     }
   },

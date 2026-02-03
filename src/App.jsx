@@ -14,6 +14,7 @@ import GestaoCategorias from "./pages/GestaoCategorias";
 import HomePublica from "./pages/HomePublica"; 
 import { AuthContext } from "./context/AuthContext";
 import "./styles/App.css";
+import GestaoMensagens from "./pages/GestaoMensagens";
 
 const AdminArea = () => {
   const { user, logout } = useContext(AuthContext);
@@ -42,6 +43,7 @@ const AdminArea = () => {
         {currentPage === "expositores" && <GestaoExpositores />}
         {currentPage === "usuarios" && <GestaoUsuarios />}
         {currentPage === "categorias" && <GestaoCategorias />}
+        {currentPage === "mensagens" && <GestaoMensagens />}
       </HomeLayout>
     </div>
   );
