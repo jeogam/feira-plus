@@ -4,12 +4,12 @@ import SuccessModal from './SuccessModal';
 import ErrorModal from './ErrorModal';
 import ContatoService from '../../services/ContatoService';
 
-const ContactModal = ({ show, handleClose }) => {
+const ContactModal = ({ show, handleClose, forcedAssunto, forcedMensagem }) => {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
-    assunto: 'SUGESTAO',
-    mensagem: ''
+    assunto: forcedAssunto || 'SUGESTAO',
+    mensagem: forcedMensagem || ''
   });
 
   const [errors, setErrors] = useState({});
@@ -20,6 +20,10 @@ const ContactModal = ({ show, handleClose }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Se o campo for "assunto" ou "mensagem" e estiver forçado, não permite edição
+    if ((name === 'assunto' && forcedAssunto) || (name === 'mensagem' && forcedMensagem)) {
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
     // Limpa erro do campo ao editar
     if (errors[name]) {
@@ -94,8 +98,8 @@ const ContactModal = ({ show, handleClose }) => {
     setFormData({
       nome: '',
       email: '',
-      assunto: 'SUGESTAO',
-      mensagem: ''
+      assunto: forcedAssunto || 'SUGESTAO',
+      mensagem: forcedMensagem || ''
     });
     setErrors({});
     handleClose();
@@ -159,7 +163,7 @@ const ContactModal = ({ show, handleClose }) => {
                 name="assunto"
                 value={formData.assunto}
                 onChange={handleChange}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !!forcedAssunto}
               >
                 <option value="SUGESTAO">Sugestão</option>
                 <option value="DUVIDA">Dúvida</option>
@@ -181,7 +185,7 @@ const ContactModal = ({ show, handleClose }) => {
                 onChange={handleChange}
                 placeholder="Escreva sua mensagem aqui..."
                 isInvalid={!!errors.mensagem}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !!forcedMensagem}
                 maxLength={1000}
               />
               <Form.Control.Feedback type="invalid">
