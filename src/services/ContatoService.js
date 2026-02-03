@@ -9,7 +9,7 @@ export const ContatoService = {
    */
   enviarMensagem: async (contato) => {
     try {
-      const response = await api.post('/api/contato', contato);
+      const response = await api.post('/contato', contato);
       return response;
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
