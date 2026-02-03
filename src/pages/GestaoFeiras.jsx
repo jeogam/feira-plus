@@ -170,7 +170,7 @@ const GestaoFeiras = () => {
                   <th>Nome</th>
                   <th>Local</th>
                   <th>Total Espaços</th>
-                  <th>Tipo / Detalhes</th>
+                  <th>Data/Frequência</th>
                   <th>Horário</th>
                   <th>Ações</th>
                 </tr>

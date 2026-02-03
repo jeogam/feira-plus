@@ -10,7 +10,6 @@ export const ExpositorService = {
   salvar: async (dadosExpositor, usuarioId) => {
     const payload = {
       ...dadosExpositor,
-      tipoProduto: dadosExpositor.tipoProduto || "Geral",
       foto: dadosExpositor.foto || null,
       nota: dadosExpositor.nota || 0,
       usuarioId: usuarioId,
@@ -50,7 +49,6 @@ export const ExpositorService = {
         status: expositorAtual.status,
         categoriaId: expositorAtual.categoriaId || expositorAtual.categoria?.id, // Ajuste dependendo do retorno do GET
         descricao: expositorAtual.descricao,
-        tipoProduto: expositorAtual.tipoProduto,
         foto: expositorAtual.foto,
         nota: novaNota, // Atualiza nota
         usuarioId: expositorAtual.usuarioId // Se disponível

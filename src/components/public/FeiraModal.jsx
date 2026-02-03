@@ -1,288 +1,369 @@
-import React, { useState } from 'react';
-import { FeiraService } from '../../services/FeiraService'; // ✅ Importar Services
-import { ExpositorService } from '../../services/ExpositorService';
-import Swal from 'sweetalert2'; // Opcional, para feedback visual
+import React, { useState } from "react";
 
 const FeiraModal = ({ feira, onClose }) => {
   const [expositorSelecionado, setExpositorSelecionado] = useState(null);
-  
-  // Estados locais para controlar a nota exibida instantaneamente após votar
-  const [notaFeira, setNotaFeira] = useState(feira ? feira.nota : 0);
-  const [notaExpositor, setNotaExpositor] = useState(0);
-
-  // Atualiza nota local se a feira mudar
-  React.useEffect(() => {
-    if (feira) setNotaFeira(feira.nota || 0);
-  }, [feira]);
-
-  React.useEffect(() => {
-    if (expositorSelecionado) setNotaExpositor(expositorSelecionado.nota || 0);
-  }, [expositorSelecionado]);
+  const [activeTab, setActiveTab] = useState("geral"); // 'geral' ou 'eventos'
 
   if (!feira) return null;
 
-  // --- LÓGICA DE AVALIAÇÃO ---
-  const handleAvaliarFeira = async (novaNota) => {
-    try {
-        await FeiraService.avaliar(feira.id, feira.tipoFeira || (feira.frequencia ? "PERMANENTE" : "EVENTO"), novaNota);
-        setNotaFeira(novaNota); // Atualiza UI
-        Swal.fire({
-            icon: 'success',
-            title: 'Avaliação enviada!',
-            text: `Você avaliou a feira com ${novaNota} estrelas.`,
-            timer: 1500,
-            showConfirmButton: false
-        });
-    } catch (error) {
-        console.error("Erro ao avaliar feira:", error);
-        Swal.fire('Erro', 'Não foi possível registrar sua avaliação.', 'error');
-    }
+  // --- FUNÇÕES DE FORMATAÇÃO ---
+
+  const formatarPreco = (valor) => {
+    if (valor === null || valor === undefined) return "0,00";
+    const numero = typeof valor === "string" ? parseFloat(valor) : valor;
+    return isNaN(numero) ? "0,00" : numero.toFixed(2).replace(".", ",");
   };
 
-  const handleAvaliarExpositor = async (novaNota) => {
-    if (!expositorSelecionado) return;
-    try {
-        await ExpositorService.avaliar(expositorSelecionado.id, novaNota);
-        setNotaExpositor(novaNota); // Atualiza UI local
-        
-        // Atualiza o objeto do expositor selecionado para manter consistência se navegar
-        setExpositorSelecionado(prev => ({...prev, nota: novaNota}));
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Avaliação enviada!',
-            text: `Você avaliou o expositor com ${novaNota} estrelas.`,
-            timer: 1500,
-            showConfirmButton: false
-        });
-    } catch (error) {
-        console.error("Erro ao avaliar expositor:", error);
-        Swal.fire('Erro', 'Não foi possível registrar sua avaliação.', 'error');
-    }
+  const formatarDataGeral = (dataString) => {
+    if (!dataString) return "";
+    const date = new Date(dataString);
+    return date.toLocaleDateString("pt-BR");
   };
 
-  // --- COMPONENTE VISUAL DE ESTRELAS ---
-  // Adicionei o parametro 'onClick' para permitir interação
-  const RenderEstrelas = ({ nota, tamanho = "", onClick = null }) => {
-    const estrelas = [];
-    const valor = nota || 0;
-    
-    // Define se é interativo (tem função onClick)
-    const isInteractive = !!onClick; 
-    const cursorStyle = isInteractive ? { cursor: 'pointer' } : {};
-
-    for (let i = 1; i <= 5; i++) {
-        let classeIcone = "far fa-star text-muted opacity-25"; // Vazia padrão
-
-        if (i <= valor) {
-            classeIcone = "fas fa-star text-warning"; // Cheia
-        } else if (i - 0.5 <= valor) {
-            classeIcone = "fas fa-star-half-alt text-warning"; // Meia
-        }
-
-        estrelas.push(
-            <i 
-                key={i} 
-                className={`${classeIcone} ${tamanho}`} 
-                style={cursorStyle}
-                onClick={isInteractive ? () => onClick(i) : undefined}
-                title={isInteractive ? `Avaliar com ${i}` : ''}
-            ></i>
-        );
-    }
-    return (
-        <span className="ms-2 text-nowrap">
-            {estrelas} 
-            <small className="text-muted ms-1 fs-6">({Number(valor).toFixed(1)})</small>
-        </span>
-    );
+  // Extrai o DIA (ex: 12)
+  const getDia = (dataString) => {
+    if (!dataString) return "--";
+    return new Date(dataString).getDate().toString().padStart(2, "0");
   };
 
-  // ... (formatarData e formatarPreco mantidos)
-  const formatarData = (dataArray) => {
-      if (!dataArray) return "";
-      if (Array.isArray(dataArray)) {
-        const [ano, mes, dia] = dataArray;
-        return `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${ano}`;
-      }
-      return dataArray; 
-  };
-  
-  const formatarPreco = (preco) => {
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(preco);
+  // Extrai o MÊS abreviado (ex: AGO)
+  const getMes = (dataString) => {
+    if (!dataString) return "";
+    return new Date(dataString)
+      .toLocaleDateString("pt-BR", { month: "short" })
+      .toUpperCase()
+      .replace(".", "");
   };
 
-  // ... (handleClose mantido)
-    const handleModalClose = () => {
+  // Extrai a HORA (ex: 14:30)
+  const getHora = (dataString) => {
+    if (!dataString) return "";
+    return new Date(dataString).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleClose = () => {
     setExpositorSelecionado(null);
+    setActiveTab("geral");
     onClose();
   };
 
+  const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(feira.local || "Irecê, Bahia")}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
+  // Lista de eventos vindo do DTO
+  const listaEventos = feira.eventos || [];
+
   return (
-    <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <div
+      className="modal fade show d-block"
+      style={{
+        backgroundColor: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(5px)",
+      }}
+      tabIndex="-1"
+    >
       <div className="modal-dialog modal-dialog-centered modal-xl">
-        <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-          
-          <div className="modal-header border-0 bg-white pb-0">
-             <button type="button" className="btn-close" onClick={handleModalClose}></button>
+        <div
+          className="modal-content border-0 shadow-lg rounded-4 overflow-hidden"
+          style={{ minHeight: "600px" }}
+        >
+          {/* --- CABEÇALHO --- */}
+          <div className="modal-header bg-white border-0 py-3">
+            <h5 className="modal-title fw-bold text-dark">
+              {expositorSelecionado ? (
+                <span>
+                  <i className="fas fa-store me-2 text-primary"></i>
+                  {expositorSelecionado.nome}
+                </span>
+              ) : (
+                <span>
+                  <i className="fas fa-calendar-day me-2 text-primary"></i>
+                  {feira.nome}
+                </span>
+              )}
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={handleClose}
+            ></button>
           </div>
 
           <div className="modal-body p-0 bg-light">
-            
-            {/* TELA 1: DETALHES DO EXPOSITOR (Se selecionado) */}
+            {/* 1. VISÃO DE PRODUTOS DO EXPOSITOR (Mantida) */}
             {expositorSelecionado ? (
               <div className="p-4 animate__animated animate__fadeIn">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <button 
-                    className="btn btn-outline-secondary btn-sm" 
-                    onClick={() => setExpositorSelecionado(null)}
-                  >
-                    <i className="bi bi-arrow-left me-2"></i> Voltar para Feira
-                  </button>
-                </div>
+                <button
+                  className="btn btn-outline-secondary rounded-pill px-4 mb-4"
+                  onClick={() => setExpositorSelecionado(null)}
+                >
+                  <i className="fas fa-arrow-left me-2"></i> Voltar
+                </button>
 
-                {/* Info do Expositor com Avaliação Interativa */}
-                <div className="mb-4 bg-white p-4 rounded shadow-sm">
-                    <div className="d-flex align-items-center justify-content-between flex-wrap">
-                        <h4 className="fw-bold mb-0">
-                            {expositorSelecionado.nome}
-                        </h4>
-                        {/* ✅ Estrelas Interativas */}
-                        <div>
-                            <span className="me-2 text-muted small">Sua avaliação:</span>
-                            <RenderEstrelas 
-                                nota={notaExpositor} 
-                                tamanho="fs-4" 
-                                onClick={handleAvaliarExpositor} 
-                            />
-                        </div>
-                    </div>
-                    {expositorSelecionado.descricao && (
-                        <p className="text-muted mt-2">{expositorSelecionado.descricao}</p>
-                    )}
-                </div>
-
-                <h5 className="fw-bold mb-3">Produtos Disponíveis</h5>
-                {/* ... (Renderização de produtos mantida) ... */}
-                 <div className="row g-4">
-                  {(expositorSelecionado.produtos && expositorSelecionado.produtos.length > 0) ? (
+                <h5 className="fw-bold mb-3">
+                  Produtos de {expositorSelecionado.nome}
+                </h5>
+                <div className="row g-4">
+                  {expositorSelecionado.produtos &&
+                  expositorSelecionado.produtos.length > 0 ? (
                     expositorSelecionado.produtos.map((produto) => (
                       <div key={produto.id} className="col-md-3 col-sm-6">
                         <div className="card h-100 border-0 shadow-sm">
-                          <img 
-                            src={produto.foto || "https://via.placeholder.com/150"} 
-                            className="card-img-top" 
-                            alt={produto.nome}
-                            style={{height: '150px', objectFit: 'cover'}}
-                          />
+                          <div
+                            className="position-relative overflow-hidden rounded-top"
+                            style={{ height: "150px" }}
+                          >
+                            {produto.foto ? (
+                              <img
+                                src={produto.foto}
+                                className="w-100 h-100 object-fit-cover"
+                                alt=""
+                              />
+                            ) : (
+                              <div className="bg-light h-100 d-flex align-items-center justify-content-center">
+                                <i className="fas fa-camera text-muted"></i>
+                              </div>
+                            )}
+                          </div>
                           <div className="card-body">
-                            <h6 className="fw-bold mb-1 text-truncate" title={produto.nome}>{produto.nome}</h6>
-                            <p className="text-muted small mb-2 text-truncate">{produto.descricao}</p>
-                            <p className="fw-bold text-success mb-0">{formatarPreco(produto.preco)}</p>
+                            <h6 className="fw-bold text-truncate">
+                              {produto.nome}
+                            </h6>
+                            <p className="text-success fw-bold">
+                              R$ {formatarPreco(produto.preco)}
+                            </p>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="col-12 text-center py-5 text-muted">Este expositor ainda não cadastrou produtos.</div>
+                    <div className="col-12 text-center py-5 text-muted">
+                      Este expositor não possui produtos cadastrados.
+                    </div>
                   )}
                 </div>
-
               </div>
-
             ) : (
+              /* 2. VISÃO PRINCIPAL (COM ABAS) */
+              <div className="d-flex flex-column h-100">
+                {/* BARRA DE ABAS */}
+                <div className="bg-white px-4 border-bottom">
+                  <ul className="nav nav-tabs border-0 gap-3">
+                    <li className="nav-item">
+                      <button
+                        className={`nav-link border-0 py-3 px-2 fw-bold ${activeTab === "geral" ? "active text-primary border-bottom border-primary border-3" : "text-muted"}`}
+                        onClick={() => setActiveTab("geral")}
+                      >
+                        <i className="fas fa-info-circle me-2"></i> Geral &
+                        Expositores
+                      </button>
+                    </li>
+                    <li className="nav-item">
+                      <button
+                        className={`nav-link border-0 py-3 px-2 fw-bold ${activeTab === "eventos" ? "active text-primary border-bottom border-primary border-3" : "text-muted"}`}
+                        onClick={() => setActiveTab("eventos")}
+                      >
+                        <i className="fas fa-calendar-alt me-2"></i> Agenda{" "}
+                        <span className="badge bg-light text-dark ms-2 border">
+                          {listaEventos.length}
+                        </span>
+                      </button>
+                    </li>
+                  </ul>
+                </div>
 
-              /* TELA 2: VISUALIZAÇÃO DA FEIRA (PADRÃO) */
-              <div className="row g-0 animate__animated animate__fadeIn" style={{ minHeight: '500px' }}>
-                
-                <div className="col-lg-7 p-4 border-end bg-white overflow-auto" style={{ maxHeight: '80vh' }}>
-                  
-                  {/* Cabeçalho da Feira com Avaliação */}
-                  <div className="mb-4">
-                      <div className="d-flex justify-content-between align-items-start">
-                        <h3 className="fw-bold text-dark mb-1">{feira.nome}</h3>
-                         {/* ✅ Estrelas Interativas da Feira */}
-                         <div className="text-end">
-                            <small className="d-block text-muted" style={{fontSize: '0.75rem'}}>Avalie esta feira:</small>
-                            <RenderEstrelas 
-                                nota={notaFeira} 
-                                tamanho="fs-5" 
-                                onClick={handleAvaliarFeira} 
-                            />
-                         </div>
-                      </div>
-                      
-                      <p className="text-muted mb-2">
-                        <i className="bi bi-geo-alt-fill me-2 text-danger"></i>
-                        {feira.local}
-                      </p>
-                      
-                      <div className="d-flex gap-3 text-small text-muted mb-3">
-                        {feira.tipoFeira === "EVENTO" ? (
-                            <span><i className="bi bi-calendar-event me-1"></i> {formatarData(feira.dataInicio)} até {formatarData(feira.dataFim)}</span>
-                        ) : (
-                            <span><i className="bi bi-arrow-repeat me-1"></i> {feira.frequencia}</span>
-                        )}
-                         <span><i className="bi bi-clock me-1"></i> {feira.horaAbertura} - {feira.horaFechamento}</span>
-                      </div>
-                  </div>
+                <div className="row g-0 flex-grow-1">
+                  {/* CONTEÚDO DA ESQUERDA */}
+                  <div
+                    className="col-lg-7 p-4 overflow-auto"
+                    style={{ maxHeight: "65vh" }}
+                  >
+                    {/* ABA GERAL */}
+                    {activeTab === "geral" && (
+                      <div className="animate__animated animate__fadeIn">
+                        <div className="d-flex align-items-start mb-4">
+                          <div
+                            className="bg-white border rounded p-1 me-3 flex-shrink-0"
+                            style={{ width: "80px", height: "80px" }}
+                          >
+                            {feira.imagem ? (
+                              <img
+                                src={feira.imagem}
+                                className="w-100 h-100 object-fit-cover rounded"
+                                alt=""
+                              />
+                            ) : (
+                              <div className="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                <i className="fas fa-store text-muted"></i>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-dark mb-2">
+                              {feira.descricao || "Venha conhecer esta feira!"}
+                            </p>
+                            <div className="d-flex gap-3 text-muted small">
+                              <span>
+                                <i className="fas fa-map-marker-alt me-1 text-danger"></i>{" "}
+                                {feira.local}
+                              </span>
+                              <span>
+                                <i className="far fa-calendar me-1"></i>{" "}
+                                {formatarDataGeral(feira.dataInicio)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
 
-                  <h5 className="fw-bold mb-3 border-bottom pb-2">Expositores</h5>
-                  
-                  <div className="list-group list-group-flush rounded-3 border-0">
-                    {(() => {
-                        const listaExpositores = feira.associados || feira.expositores || feira.usuarios || [];
-                        
-                        if (listaExpositores.length > 0) {
-                          return listaExpositores.map((associado) => (
-                            <div key={associado.id} className="list-group-item border-bottom py-3 px-0">
-                              <div className="d-flex justify-content-between align-items-center">
-                                <div className="d-flex align-items-center">
-                                  <img 
-                                    src={associado.foto || "https://via.placeholder.com/50"} 
-                                    className="rounded-circle me-3 border" 
-                                    width="50" height="50" 
-                                    alt="Expositor" 
-                                    style={{objectFit: 'cover'}}
-                                  />
-                                  <div>
-                                    <h6 className="mb-0 fw-bold text-dark">
-                                        {associado.nome}
-                                        {/* Apenas exibe nota aqui, não interativo na lista para não poluir */}
-                                        <RenderEstrelas nota={associado.nota} tamanho="small" /> 
+                        <h6 className="fw-bold mb-3 text-dark border-bottom pb-2">
+                          Expositores Confirmados
+                        </h6>
+                        <div className="list-group list-group-flush">
+                          {(() => {
+                            const lista = feira.expositores || []; // DTO Atualizado usa 'expositores'
+                            if (lista.length > 0) {
+                              return lista.map((exp) => (
+                                <div
+                                  key={exp.id}
+                                  className="list-group-item border-bottom-0 py-2 d-flex justify-content-between align-items-center px-0 hover-bg-light rounded px-2"
+                                >
+                                  <div className="d-flex align-items-center">
+                                    <div
+                                      className="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm"
+                                      style={{ width: "40px", height: "40px" }}
+                                    >
+                                      {exp.foto ? (
+                                        <img
+                                          src={exp.foto}
+                                          className="w-100 h-100 rounded-circle object-fit-cover"
+                                          alt=""
+                                        />
+                                      ) : (
+                                        exp.nome?.[0] || "?"
+                                      )}
+                                    </div>
+                                    <div>
+                                      <h6 className="mb-0 fw-bold text-dark">
+                                        {exp.nome}
+                                      </h6>
+                                      <small
+                                        className="text-muted"
+                                        style={{ fontSize: "0.8rem" }}
+                                      >
+                                        {exp.categoriaNome || "Expositor"}
+                                      </small>
+                                    </div>
+                                  </div>
+                                  <button
+                                    className="btn btn-sm btn-outline-primary rounded-pill"
+                                    onClick={() => setExpositorSelecionado(exp)}
+                                  >
+                                    Ver Produtos
+                                  </button>
+                                </div>
+                              ));
+                            }
+                            return (
+                              <div className="text-muted small py-2 text-center border rounded bg-light">
+                                Nenhum expositor confirmado.
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* --- ABA EVENTOS (ATUALIZADA) --- */}
+                    {activeTab === "eventos" && (
+                      <div className="animate__animated animate__fadeIn">
+                        <h6 className="fw-bold mb-4 text-dark">
+                          Cronograma de Atividades
+                        </h6>
+
+                        <div className="d-flex flex-column gap-3">
+                          {listaEventos.length > 0 ? (
+                            listaEventos.map((evento, index) => (
+                              <div
+                                key={index}
+                                className="card border-0 shadow-sm"
+                              >
+                                <div className="card-body d-flex align-items-center p-3">
+                                  {/* BLOCO DE DATA (ESQUERDA) */}
+                                  <div
+                                    className="bg-primary bg-opacity-10 text-primary rounded-3 d-flex flex-column align-items-center justify-content-center me-3 flex-shrink-0"
+                                    style={{ width: "60px", height: "60px" }}
+                                  >
+                                    <span
+                                      className="fw-bold h5 mb-0"
+                                      style={{ lineHeight: 1 }}
+                                    >
+                                      {getDia(evento.dataHoraInicio)}
+                                    </span>
+                                    <span
+                                      className="small text-uppercase fw-bold"
+                                      style={{ fontSize: "0.7rem" }}
+                                    >
+                                      {getMes(evento.dataHoraInicio)}
+                                    </span>
+                                  </div>
+
+                                  {/* CONTEÚDO DO EVENTO */}
+                                  <div className="flex-grow-1 border-start ps-3">
+                                    <h6 className="fw-bold text-dark mb-1">
+                                      {evento.titulo || "Evento sem título"}
                                     </h6>
-                                    <small className="text-muted">{associado.descricao || "Sem descrição"}</small>
+
+                                    {/* Horário */}
+                                    <div className="text-muted small mb-1">
+                                      <i className="far fa-clock me-1 text-primary"></i>
+                                      {getHora(evento.dataHoraInicio)}
+                                      {evento.dataHoraFim &&
+                                        ` - ${getHora(evento.dataHoraFim)}`}
+                                    </div>
+
+                                    {/* Descrição */}
+                                    {evento.descricao && (
+                                      <p
+                                        className="text-secondary small mb-0 text-truncate"
+                                        style={{ maxWidth: "350px" }}
+                                        title={evento.descricao}
+                                      >
+                                        {evento.descricao}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
-                                <button 
-                                  className="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                  onClick={() => setExpositorSelecionado(associado)}
-                                >
-                                  Ver Produtos
-                                </button>
                               </div>
+                            ))
+                          ) : (
+                            <div className="alert alert-light text-center py-4">
+                              <i className="far fa-calendar-times fa-2x mb-3 text-muted opacity-50"></i>
+                              <p className="mb-0 text-muted">
+                                Nenhuma atividade programada.
+                              </p>
                             </div>
-                          ));
-                        } else {
-                           return <div className="text-center py-4 text-muted">Nenhum expositor confirmado ainda.</div>
-                        }
-                    })()}
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* LADO DIREITO: MAPA (Fixo) */}
+                  <div className="col-lg-5 bg-light d-none d-lg-block position-relative">
+                    <iframe
+                      title="mapa"
+                      width="100%"
+                      height="100%"
+                      src={mapSrc}
+                      style={{ border: 0 }}
+                      loading="lazy"
+                    ></iframe>
                   </div>
                 </div>
-
-                {/* Coluna Direita (Mapa ou Foto Grande) */}
-                <div className="col-lg-5 bg-light d-none d-lg-block" style={{ 
-                    backgroundImage: `url(${feira.foto || 'https://via.placeholder.com/600x800'})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    minHeight: '100%'
-                }}>
-                   <div className="h-100 w-100" style={{background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7))'}}></div>
-                </div>
-
               </div>
             )}
-
           </div>
         </div>
       </div>

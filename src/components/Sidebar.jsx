@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; useNavigate
+import { useNavigate } from 'react-router-dom'; 
 import { AuthContext } from "../context/AuthContext";
 import './Sidebar.css'; 
 
@@ -13,12 +13,13 @@ const Sidebar = ({ activePage, onNavigate }) => {
     { id: 'home', label: 'Ir para Home', icon: 'fas fa-home' }, 
     { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt' },
     { id: 'feiras', label: 'Gestão de Feiras', icon: 'fas fa-calendar-check' },
+    { id: 'eventos', label: 'Gestão de Eventos', icon: 'fas fa-calendar-day' }, 
     { id: 'categorias', label: 'Categorias', icon: 'fas fa-tags' }, 
     { id: 'relatorios', label: 'Relatórios', icon: 'fas fa-chart-pie' },
     { id: 'expositores', label: 'Expositores', icon: 'fas fa-store' },
     { id: 'mensagens', label: 'Mensagens', icon: 'fas fa-envelope' },
     { id: 'usuarios', label: 'Usuários', icon: 'fas fa-users-cog' },
-    { id: 'configuracoes', label: 'Configurações', icon: 'fas fa-cog' },
+    
     { id: 'sair', label: 'Sair', icon: 'fas fa-sign-out-alt' },
   ];
 
@@ -36,7 +37,7 @@ const Sidebar = ({ activePage, onNavigate }) => {
 
   return (
     <>
-      {/* --- BOTÃO HAMBÚRGUER --- */}
+      {/* --- BOTÃO HAMBÚRGUER (MOBILE) --- */}
       <button 
         className="btn btn-dark d-md-none mobile-toggle-btn"
         onClick={() => setIsOpen(!isOpen)}
@@ -45,7 +46,7 @@ const Sidebar = ({ activePage, onNavigate }) => {
         <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'}`}></i>
       </button>
 
-      {/* --- OVERLAY --- */}
+      {/* --- OVERLAY (MOBILE) --- */}
       {isOpen && (
         <div 
           className="sidebar-overlay d-md-none" 
@@ -79,7 +80,7 @@ const Sidebar = ({ activePage, onNavigate }) => {
               <button
                 onClick={() => handleClick(item.id)}
                 className={`nav-link w-100 text-start d-flex align-items-center ${activePage === item.id ? 'active' : 'text-white'}`}
-                // Adiciona cor diferente para "Ir para Home" ou "Sair" se quiser destacar, opcional
+                // Destaca visualmente o botão Home
                 style={item.id === 'home' ? { backgroundColor: 'rgba(255,255,255,0.1)' } : {}}
               >
                 <div style={{ width: '24px' }} className="me-2 text-center">

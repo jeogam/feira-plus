@@ -60,6 +60,7 @@ export const FeiraService = {
     if (tipo === "EVENTO") return await api.delete(`${ENDPOINT_EVENTOS}/${id}`);
     return await api.delete(`${ENDPOINT_PERMANENTES}/${id}`);
   },
+  
 
   // ✅ NOVO MÉTODO PARA AVALIAR
   avaliar: async (id, tipo, novaNota) => {
